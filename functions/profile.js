@@ -52,6 +52,23 @@ exports.handler = async (event) => {
         const src = ("links" in d) ? (d.links || {}) : (e0.links || {});
         return { youtube: s(src.youtube, 200), instagram: s(src.instagram, 200), tiktok: s(src.tiktok, 200) };
       })(),
+      channels:    (function () {
+        const src = ("channels" in d) ? (d.channels || []) : (e0.channels || []);
+        if (!Array.isArray(src)) return [];
+        return src.slice(0, 10).map(function (ch) {
+          if (!ch || typeof ch !== "object") return null;
+          return {
+            platform: s(ch.platform, 30),
+            handle: s(ch.handle, 100),
+            name: s(ch.name, 150),
+            subscribers: Number(ch.subscribers) || 0,
+            thumbnail: s(ch.thumbnail, 300),
+            description: s(ch.description, 500),
+            niche_hint: s(ch.niche_hint, 80),
+            url: s(ch.url, 300)
+          };
+        }).filter(Boolean);
+      })(),
       size:        pick(d, e0, "size",        function (v) { return s(v, 40); }),
 
       // --- 3. Style & voice (Nimbo's memory) ---
