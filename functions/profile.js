@@ -24,7 +24,7 @@ exports.handler = async (event) => {
     if (user.email) await linkChannel("email", user.email, user.sub).catch(function () {});
     const tg = (profile && profile.telegram) || null;
     return { statusCode: 200, headers, body: JSON.stringify({
-      user: { name: user.name, email: user.email, picture: user.picture },
+      user: { sub: user.sub, name: user.name, email: user.email, picture: user.picture },
       profile: profile, briefs: briefs, usage: usage, events: events,
       channels: { telegram: tg ? { connected: true, username: tg.username || "" } : { connected: false } },
       plans: PLANS, foundingDiscount: FOUNDING_DISCOUNT
@@ -109,6 +109,9 @@ exports.handler = async (event) => {
 
       // --- connected channels (set when the creator pairs Telegram, never by this form) ---
       telegram:      e0.telegram || null,
+
+      // --- YouTube OAuth tokens (set by /youtube-connect, cleared via disconnect_yt:true) ---
+      yt:            d.disconnect_yt ? null : (e0.yt || null),
 
       onboarded:   ("onboarded" in d) ? b(d.onboarded) : b(e0.onboarded),
       createdAt:   e0.createdAt || Date.now(),

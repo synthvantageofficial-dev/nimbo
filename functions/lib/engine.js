@@ -31,12 +31,26 @@ function viewsShort(n) {
   return String(n);
 }
 
-// Build a free, no-key thumbnail image URL (Pollinations) from the brief's thumbnail concept.
-function buildThumbUrl(brief, niche, platform) {
+// Build thumbnail URL: Pexels first (reliable, free, professional), Pollinations as fallback.
+async function buildThumbUrl(brief, niche, platform) {
   var isLong = platform === "youtube_long";
-  var w = isLong ? 1280 : 576;   // 16:9 for long, 9:16 for vertical (free-tier friendly sizes)
-  var h = isLong ? 720 : 1024;
-  var base = ((brief && brief.thumbnail_image_prompt) || (brief && brief.thumbnail_concept) || niche || "").toString();
+  var base = ((brief && brief.thumbnail_image_prompt) || (brief && brief.thumbnail_concept) || niche || "creative content").toString().slice(0, 150);
+  var pexelsKey = process.env.PEXELS_API_KEY;
+  if (pexelsKey) {
+    try {
+      var orientation = isLong ? "landscape" : "portrait";
+      var r = await fetch("https://api.pexels.com/v1/search?query=" + encodeURIComponent(base) + "&per_page=5&orientation=" + orientation + "&per_page=5", { headers: { Authorization: pexelsKey } });
+      if (r.ok) {
+        var data = await r.json();
+        if (data.photos && data.photos.length) {
+          var photo = data.photos[Math.floor(Math.random() * Math.min(data.photos.length, 3))];
+          return isLong ? (photo.src.large2x || photo.src.large) : (photo.src.portrait || photo.src.large2x || photo.src.large);
+        }
+      }
+    } catch (e) {}
+  }
+  // Fallback: Pollinations (no key needed, but less reliable)
+  var w = isLong ? 1280 : 576; var h = isLong ? 720 : 1024;
   var prompt = base + " No text, no letters, no words. Vivid saturated colors, high contrast, dramatic cinematic lighting, ultra sharp, professional, photorealistic.";
   var seed = 7; for (var i = 0; i < base.length; i++) { seed = (seed * 31 + base.charCodeAt(i)) >>> 0; }
   return "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt.slice(0, 480)) + "?width=" + w + "&height=" + h + "&nologo=true&model=flux&seed=" + (seed % 100000);
@@ -156,7 +170,7 @@ async function generateBrief(opts) {
         const brief = parseBrief(data);
         if (brief) {
           const out = { niche: niche, platform: platform, platformLabel: cfg.ui, brief: brief, trending: trending, grounded: trending.length > 0, trendSource: isYouTubePlatform ? "youtube_api" : "gemini_knowledge", model: model, createdAt: Date.now() };
-          out.thumbUrl = buildThumbUrl(brief, niche, platform);
+          out.thumbUrl = await buildThumbUrl(brief, niche, platform);
           return out;
         }
         lastErr = "Nimbo couldn't format the brief. Please try again.";
