@@ -1,4 +1,8 @@
 # Nimbo — Netlify config
+[build]
+  publish = "nimbo-site"
+  functions = "functions"
+
 # Daily autopilot: Nimbo generates fresh briefs for opted-in creators on its own.
 [functions."daily"]
   schedule = "@daily"
