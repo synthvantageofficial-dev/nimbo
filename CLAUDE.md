@@ -328,6 +328,61 @@ then **ffmpeg.wasm client-side** assembles the MP4 in the user's browser (keeps 
   `profile.js` was wiping server-set fields (Dodo subscription ids) on every setup edit; autopilot
   ignored plan + quota. Added `NIMBO_LOCAL_STORE` so everything is testable without a deploy.
 
+## 12 Oct - Session 3
+
+### What was done this session
+- **Google OAuth fix:** Added `http://localhost:8888` to authorized JavaScript origins in Google Cloud Console → Google sign-in now works on localhost.
+- **Telegram alternative discussed:** BotFather not creating new bots on founder's account. WhatsApp Business Cloud API identified as best global alternative (needs Meta Business Account + dedicated number). Email (with domain) is simplest universal option. **Decision pending from founder.**
+- **Local dev clarification:** Founder's project folder is `C:\Users\acer\OneDrive\Desktop\personal ai instict` (not "nimbo"). To test: `cd` to that folder → `git fetch origin && git checkout main-35vxqq` → `node tools/dev-server.js` → open `http://localhost:8888/app.html?dev=1`.
+- **CLAUDE.md updated** with full ✅ / ❌ status summary below.
+
+### Decisions still waiting on founder
+- [ ] Messaging channel: WhatsApp (Meta Business Account + spare number) OR Email (buy domain ₹900) OR wait for BotFather to work?
+- [ ] Domain: `trynimbo.com` ya koi aur? (needed for email channel, payments trust, host-independence)
+- [ ] Netlify block: check `app.netlify.com/teams/synthvantageofficial-dev/billing` and send screenshot or message Netlify support
+
+---
+
+## 📊 COMPLETE STATUS: WHAT IS DONE vs WHAT REMAINS
+
+### ✅ 100% BUILT (code is ready, waiting for deploy)
+
+| Feature | Where | Notes |
+|---|---|---|
+| Landing page + waitlist | LIVE | Email capture working |
+| Content Engine (basic) | LIVE | Ideas + script + trends |
+| **Setup Wizard (6 steps)** | Ready to deploy | All steps tested locally |
+| **Paywall** (3 plans) | Ready to deploy | Founding prices, flow complete |
+| **Dodo Payments** | Ready to deploy | Test payment confirmed ($27/mo) |
+| Better thumbnails | Ready to deploy | Format-aware (16:9 / 9:16) |
+| TTS + Image proxies | Ready to deploy | `tts.js`, `img.js` |
+| Engine personalization | Ready to deploy | Full creator profile used in briefs |
+| **Autonomous Engine** | Ready to deploy | Web chat + Telegram + Email-in wired |
+| Action ledger ("Nimbo ne khud kya kiya") | Ready to deploy | Last 50 actions saved |
+| Background + scheduled workers | Ready to deploy | Queue-based, no timeout |
+| Video player UI | Ready to deploy | Shows in brief, download button |
+| Free faceless video (v4) | Proven locally | Pexels + Edge-TTS + captions |
+| Local dev server (`?dev=1`) | Working on laptop | Skips Google sign-in |
+
+### ❌ REMAINING (not built yet)
+
+| Feature | Blocker | Priority |
+|---|---|---|
+| **DEPLOY** everything above | Netlify block (§1) | 🔴 #1 |
+| **Messaging channel** (WhatsApp/Email) | Founder decision + setup | 🔴 High |
+| Free video INTO product (`/voice`, `/pexels`, ffmpeg.wasm) | Needs coding | 🟡 Medium |
+| Video polish (music, better cuts, animated captions) | Needs coding | 🟡 Medium |
+| Auto-posting (YouTube OAuth first) | Needs coding + app review | 🟡 Medium |
+| Payments LIVE mode (separate Dodo biz) | Founder action (Dodo) | 🟡 Medium |
+| Domain purchase | Founder pays ₹900 | 🟡 Medium |
+| Email delivery channel | Needs domain first | 🟡 Medium |
+| India pricing decision | Founder decides | 🟡 Medium |
+| PWA (install on home screen) | Needs coding | 🟢 Later |
+| Trust layer (approvals, undo) | Needs coding | 🟢 Later |
+| Native mobile app | Months of work + money | 🔵 Future |
+
+---
+
 ## 12 Oct - Session 2 (cloud session continues from here)
 
 ### What was done this session
