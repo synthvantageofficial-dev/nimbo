@@ -1,0 +1,30 @@
+# Secrets - NEVER commit these
+.env.local
+.env
+
+# Local test store (JSON file used when NIMBO_LOCAL_STORE is set)
+.localstore
+*.localstore.json
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Large sample video files (built locally, not needed in repo)
+nimbo_faceless_sample.mp4
+nimbo_faceless_v2.mp4
+nimbo_faceless_v3.mp4
+nimbo_faceless_v4.mp4
+nimbo_agent_video.mp4
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+
+# Netlify local dev cache
+.netlify/
+
+# Python cache
+__pycache__/
+*.pyc

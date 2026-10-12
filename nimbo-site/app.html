@@ -1,0 +1,1327 @@
+<html lang="en"><head>
+<meta charset="utf-8">
+<!-- This site is hosted on Netlify. Anyone can build and deploy a site
+     like this one for free: https://netlify.new/?utm_campaign=loops&utm_source=ai-legible&utm_medium=owned&utm_content=comment&utm_id=a94f10c3-a179-49c7-83f6-715c07a3b4d9
+     Netlify hosting facts for this site: static/SSR served via Netlify Edge. -->
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Nimbo — Content Engine</title>
+<style>
+  :root{
+    --sky-top:#cdebff;--sky-mid:#dcd4ff;--sky-bot:#ffe3f3;
+    --bg:#f7f5ff;--ink:#2b2550;--ink-soft:#6b6690;--card:#fff;--line:#ece7ff;
+    --accent:#7c5cff;--accent-d:#6a46f2;--pink:#ff8fcf;--mint:#8fe3c6;--yellow:#ffd36b;
+    color-scheme:light;
+    --fdisplay:"Fredoka","Baloo 2",system-ui,sans-serif;
+    --fbody:"Nunito",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:
+      radial-gradient(1100px 440px at 85% -10%, var(--sky-top), transparent 60%),
+      linear-gradient(175deg,var(--sky-mid),var(--bg) 40%);
+    color:var(--ink);font-family:var(--fbody);font-size:17px;line-height:1.6;min-height:100vh}
+  .wrap{max-width:860px;margin-inline:auto;padding-inline:20px;padding-block:24px 64px}
+  h1,h2,h3{font-family:var(--fdisplay);font-weight:600;line-height:1.1;margin:0;text-wrap:balance}
+  a{color:var(--accent-d)}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:26px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--fdisplay);font-weight:600;font-size:1.35rem;text-decoration:none;color:inherit}
+  .brand svg{width:38px;height:30px}
+  #authArea{display:flex;align-items:center;gap:10px}
+  .userchip{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 8px 5px 5px}
+  .userchip img{width:30px;height:30px;border-radius:50%}
+  .userchip .nm{font-weight:800;font-size:.9rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .usagepill{background:#efe9ff;color:var(--accent-d);font-weight:800;font-size:.78rem;padding:4px 10px;border-radius:999px}
+  .signout{border:0;background:transparent;color:var(--ink-soft);font-weight:800;font-size:.82rem;cursor:pointer}
+  .signout:hover{color:var(--ink)}
+
+  .hero{text-align:center;margin-bottom:22px}
+  .hero h1{font-size:clamp(1.7rem,4.4vw,2.5rem)}
+  .hero p{color:var(--ink-soft);font-weight:600;margin:12px auto 0;max-width:46ch}
+
+  .box{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 18px 40px rgba(90,70,170,.10)}
+  .gate{text-align:center;max-width:520px;margin-inline:auto}
+  .gate h2{font-size:1.5rem}
+  .gate p{color:var(--ink-soft);font-weight:600;margin:10px auto 18px;max-width:40ch}
+  .gbtn{display:flex;justify-content:center;min-height:44px}
+  .finePrint{color:var(--ink-soft);font-weight:700;font-size:.82rem;margin-top:14px}
+
+  form{display:flex;gap:10px;flex-wrap:wrap}
+  input[type=text]{flex:1;min-width:150px;border:2px solid var(--line);border-radius:14px;padding:.85em 1.05em;font:inherit;font-weight:600}
+  input[type=text]:focus{outline:none;border-color:var(--accent)}
+  #platform{border:2px solid var(--line);border-radius:14px;padding:.85em 1.05em;font:inherit;font-weight:700;background:#fff;color:var(--ink);cursor:pointer}
+  #platform:focus{outline:none;border-color:var(--accent)}
+  .btn{border:0;cursor:pointer;font-family:var(--fdisplay);font-weight:600;font-size:1rem;padding:.8em 1.3em;border-radius:14px;
+    background:linear-gradient(180deg,var(--accent),var(--accent-d));color:#fff;box-shadow:0 8px 20px rgba(124,92,255,.35);transition:transform .15s}
+  .btn:hover{transform:translateY(-2px)}
+  .btn:disabled{opacity:.6;cursor:default;transform:none}
+  .examples{margin-top:12px;color:var(--ink-soft);font-weight:700;font-size:.86rem}
+  .examples b{color:var(--accent-d);cursor:pointer;border-bottom:1px dashed var(--accent);margin:0 2px}
+  .brandbox{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+  .brandbox summary{cursor:pointer;font-family:var(--fdisplay);font-weight:600;color:var(--ink)}
+  .brandbox textarea{width:100%;margin-top:10px;border:2px solid var(--line);border-radius:14px;padding:.8em 1em;font:inherit;font-weight:600;min-height:72px;resize:vertical}
+  .brandbox textarea:focus{outline:none;border-color:var(--accent)}
+  .hint{color:var(--ink-soft);font-weight:700;font-size:.8rem;margin-top:8px}
+  .wiz{display:none;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:26px 24px;box-shadow:0 18px 40px rgba(90,70,170,.10);max-width:660px;margin-inline:auto}
+  .wiz h2{font-size:1.4rem}
+  .wiz .wsub{color:var(--ink-soft);font-weight:600;margin-top:8px;font-size:.95rem}
+  .wizbar{height:8px;background:#efeaff;border-radius:999px;margin:18px 0 6px;overflow:hidden}
+  .wizbar i{display:block;height:100%;width:16%;background:linear-gradient(90deg,var(--accent),var(--pink));border-radius:999px;transition:width .25s}
+  .wizcount{color:var(--ink-soft);font-weight:800;font-size:.8rem;text-align:right;margin-bottom:14px}
+  .wizstep{display:none}
+  .wizstep.on{display:block}
+  .fld{margin-top:16px}
+  .fld label{display:block;font-weight:800;margin-bottom:4px}
+  .fld .hl{color:var(--ink-soft);font-weight:700;font-size:.8rem;margin-bottom:7px}
+  .fld input[type=text],.fld textarea,.fld select{width:100%;border:2px solid var(--line);border-radius:14px;padding:.75em 1em;font:inherit;font-weight:600;background:#fff;color:var(--ink)}
+  .fld textarea{min-height:74px;resize:vertical}
+  .fld input:focus,.fld textarea:focus,.fld select:focus{outline:none;border-color:var(--accent)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chipb{border:2px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font:inherit;font-weight:700;cursor:pointer;color:var(--ink)}
+  .chipb.sel{border-color:var(--accent);background:#efe9ff;color:var(--accent-d)}
+  .wiznav{display:flex;justify-content:space-between;gap:10px;margin-top:26px}
+  .btnghost{background:#fff;color:var(--ink-soft);box-shadow:inset 0 0 0 2px var(--line);border:0;border-radius:14px;padding:.8em 1.3em;font-family:var(--fdisplay);font-weight:600;cursor:pointer}
+  .editsetup{background:none;border:0;color:var(--accent-d);font-weight:800;font-size:.82rem;cursor:pointer;text-decoration:underline;margin-top:14px;padding:0}
+  .pay{display:none;max-width:880px;margin-inline:auto}
+  .payhead{text-align:center}
+  .payhead h2{font-size:1.65rem}
+  .payhead p{color:var(--ink-soft);font-weight:600;margin-top:10px}
+  .foundbadge{display:inline-block;background:#e7f8f1;color:#157a56;font-weight:800;font-size:.8rem;padding:6px 14px;border-radius:999px;margin-top:14px}
+  .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:28px;align-items:stretch}
+  @media(max-width:780px){.plans{grid-template-columns:1fr}}
+  .plan{background:#fff;border:2px solid var(--line);border-radius:22px;padding:26px 20px 22px;text-align:center;position:relative;display:flex;flex-direction:column}
+  .plan.best{border-color:var(--accent);box-shadow:0 16px 36px rgba(124,92,255,.18)}
+  .plan .tag2{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-family:var(--fdisplay);font-weight:700;font-size:.74rem;padding:4px 12px;border-radius:999px;white-space:nowrap}
+  .plan h3{font-size:1.25rem}
+  .plan .was{color:var(--ink-soft);text-decoration:line-through;font-weight:700;font-size:.95rem;margin-top:12px}
+  .plan .now{font-family:var(--fdisplay);font-weight:600;font-size:2.2rem;color:var(--ink);line-height:1;margin-top:2px}
+  .plan .per{color:var(--ink-soft);font-weight:700;font-size:.82rem;margin-top:4px}
+  .plan ul{list-style:none;padding:0;margin:18px 0 0;text-align:left;flex:1}
+  .plan li{font-weight:600;color:var(--ink);padding:5px 0;font-size:.9rem}
+  .plan li::before{content:"\2713  ";color:#157a56;font-weight:900}
+  .plan .btn{width:100%;margin-top:18px;justify-content:center;display:block}
+  .paynote{text-align:center;color:var(--ink-soft);font-weight:700;font-size:.82rem;margin-top:20px}
+  .curplan{background:#efe9ff;color:var(--accent-d);font-weight:800;font-size:.72rem;padding:3px 9px;border-radius:999px;margin-left:6px}
+  .autopilot{display:flex;align-items:center;gap:12px;margin-top:16px;border-top:1px solid var(--line);padding-top:16px;cursor:pointer;font-weight:700;color:var(--ink)}
+  .autopilot input{width:0;height:0;opacity:0;position:absolute}
+  .switch{flex:0 0 auto;width:46px;height:26px;border-radius:999px;background:#d9d2f5;position:relative;transition:background .15s}
+  .switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 2px 5px rgba(0,0,0,.2)}
+  .autopilot input:checked + .switch{background:var(--accent)}
+  .autopilot input:checked + .switch::after{left:23px}
+  .ap-sub{color:var(--ink-soft);font-weight:700;font-size:.82rem}
+  .freshbanner{display:none;background:linear-gradient(120deg,#e7f8f1,#f3efff);border:1px solid #c7ecdd;border-radius:18px;padding:16px 18px;margin-bottom:18px;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap}
+  .freshbanner .fb-t{font-family:var(--fdisplay);font-weight:600;color:var(--ink)}
+  .freshbanner button{border:0;background:var(--accent);color:#fff;font-family:var(--fdisplay);font-weight:700;border-radius:999px;padding:8px 16px;cursor:pointer}
+
+  .loading{display:none;text-align:center;padding:40px 10px}
+  .cloud-spin{width:66px;height:52px;margin:0 auto 16px;animation:bob 2.2s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  .loading p{font-family:var(--fdisplay);font-weight:600;color:var(--accent-d);font-size:1.05rem}
+  .err{display:none;background:#ffe9f0;color:#c4367a;font-weight:700;border-radius:14px;padding:14px 16px;margin-top:16px}
+
+  .result{display:none;margin-top:26px}
+  .result .niche{font-family:var(--fdisplay);font-weight:600;font-size:1.15rem;text-align:center;margin-bottom:18px;color:var(--ink)}
+  .sec{margin-top:22px}
+  .sec .lbl{display:flex;align-items:center;gap:8px;font-family:var(--fdisplay);font-weight:600;font-size:1.15rem;margin-bottom:12px}
+  .sec .lbl .em{font-size:1.2rem}
+  .trend{display:grid;gap:8px}
+  .trend a{display:flex;align-items:center;gap:12px;text-decoration:none;background:#fff6fb;border:1px solid #ffdcee;border-radius:12px;padding:10px 13px;color:var(--ink);font-weight:700}
+  .trend a:hover{border-color:var(--pink)}
+  .trend .tt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .trend .v{color:#c4367a;font-weight:800;font-size:.84rem;white-space:nowrap}
+  .ideas{display:grid;gap:12px}
+  .idea{border:1px solid var(--line);border-radius:16px;padding:16px;background:#faf9ff;position:relative}
+  .idea.best{border-color:var(--accent);background:#f3efff;box-shadow:0 8px 22px rgba(124,92,255,.14)}
+  .idea .badge{position:absolute;top:-10px;right:14px;background:var(--accent);color:#fff;font-family:var(--fdisplay);font-weight:700;font-size:.72rem;padding:3px 10px;border-radius:999px}
+  .idea h3{font-size:1.05rem}
+  .idea .hook{margin-top:6px;font-weight:700;color:var(--ink)}
+  .idea .hook span{color:var(--accent-d)}
+  .idea .why{margin-top:4px;color:var(--ink-soft);font-weight:600;font-size:.92rem}
+  .script{white-space:pre-wrap;background:#faf9ff;border:1px solid var(--line);border-radius:16px;padding:18px;font-weight:600;line-height:1.7}
+  .kv{background:#faf9ff;border:1px solid var(--line);border-radius:16px;padding:16px}
+  .kv .t{font-weight:800;color:var(--ink)}
+  .kv .sub{color:var(--ink-soft);font-weight:700;font-size:.82rem;margin-top:4px}
+  .thumbframe{display:none;position:relative;margin-top:12px;max-width:520px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#efeaff;line-height:0}
+  .thumbframe.vert{max-width:300px}
+  .thumbimg{display:block;width:100%;height:auto}
+  .thumbtext{position:absolute;left:5%;right:5%;bottom:7%;text-align:center;font-family:var(--fdisplay);font-weight:700;text-transform:uppercase;color:#fff;line-height:1.02;font-size:clamp(1.1rem,5.5vw,2.1rem);text-shadow:0 2px 0 #000,0 3px 14px rgba(0,0,0,.75);-webkit-text-stroke:1px rgba(0,0,0,.35);letter-spacing:.01em}
+  .thumbcap{color:var(--ink-soft);font-weight:700;font-size:.8rem;margin-top:6px}
+  .thumbcap a{color:var(--accent-d)}
+  .tags{display:flex;flex-wrap:wrap;gap:8px}
+  .tag{background:#efe9ff;color:var(--accent-d);font-weight:800;font-size:.84rem;padding:5px 11px;border-radius:999px}
+  .copy{float:right;border:0;background:#efe9ff;color:var(--accent-d);font-family:var(--fdisplay);font-weight:700;font-size:.78rem;padding:5px 11px;border-radius:999px;cursor:pointer}
+  .copy:hover{background:#e3dbff}
+  .brieflist{display:grid;gap:8px}
+  .brieflist button{text-align:left;border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px 14px;cursor:pointer;font:inherit;display:flex;justify-content:space-between;gap:10px;align-items:center}
+  .brieflist button:hover{border-color:var(--accent)}
+  .brieflist .bt{font-weight:800;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .brieflist .bm{color:var(--ink-soft);font-weight:700;font-size:.8rem;white-space:nowrap}
+  .foot{text-align:center;color:var(--ink-soft);font-weight:700;font-size:.85rem;margin-top:34px}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+
+  /* ---------- Talk to Nimbo (the agent) ---------- */
+  .agentbox{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:0 18px 40px rgba(90,70,170,.10);margin-bottom:18px}
+  .agenthead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .agenthead h2{font-size:1.25rem}
+  .agentpill{background:#e9fbf4;color:#1c7a5a;font-weight:800;font-size:.72rem;padding:4px 10px;border-radius:999px}
+  .agentsub{color:var(--ink-soft);font-weight:600;font-size:.92rem;margin:0 0 14px}
+  .chat{max-height:380px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 10px}
+  .bub{max-width:88%;padding:11px 14px;border-radius:16px;font-weight:600;font-size:.95rem;white-space:pre-wrap;word-break:break-word}
+  .bub.me{align-self:flex-end;background:linear-gradient(180deg,var(--accent),var(--accent-d));color:#fff;border-bottom-right-radius:5px}
+  .bub.nb{align-self:flex-start;background:#f4f1ff;border:1px solid var(--line);border-bottom-left-radius:5px}
+  .bub.err{align-self:flex-start;background:#fff1f1;border:1px solid #ffd7d7;color:#a33}
+  .chatempty{color:var(--ink-soft);font-weight:600;font-size:.92rem;text-align:center;padding:14px 6px}
+  .dots span{display:inline-block;width:7px;height:7px;margin-right:4px;border-radius:50%;background:var(--accent);opacity:.35;animation:bl 1.1s infinite}
+  .dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+  @keyframes bl{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
+  .askrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .askrow input{flex:1;min-width:170px;border:2px solid var(--line);border-radius:14px;padding:.8em 1em;font:inherit;font-weight:600}
+  .askrow input:focus{outline:none;border-color:var(--accent)}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .chips b{cursor:pointer;background:#f4f1ff;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:.82rem;font-weight:800;color:var(--accent-d)}
+  .chips b:hover{background:#ece6ff}
+
+  /* ---------- channels ---------- */
+  .chan{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-top:1px dashed var(--line);margin-top:16px;padding-top:16px}
+  .chan .ci{font-size:1.6rem}
+  .chan .ct{flex:1;min-width:190px}
+  .chan .ct b{display:block;font-family:var(--fdisplay);font-weight:600}
+  .chan .ct span{color:var(--ink-soft);font-weight:600;font-size:.86rem}
+  .code{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:800;letter-spacing:3px;font-size:1.15rem;background:#f4f1ff;border:2px dashed var(--accent);border-radius:12px;padding:8px 14px;color:var(--accent-d)}
+  .tgbtn{display:inline-block;text-decoration:none;background:#229ED9;color:#fff;font-family:var(--fdisplay);font-weight:600;padding:.7em 1.15em;border-radius:12px;box-shadow:0 8px 18px rgba(34,158,217,.3)}
+  .okdot{color:#1c7a5a;font-weight:800;font-size:.88rem}
+
+  /* ---------- finished video ---------- */
+  .vidwrap{margin:0 0 18px;background:#0d0a1f;border-radius:18px;overflow:hidden;border:1px solid var(--line)}
+  .vidwrap video{display:block;width:100%;max-height:70vh;background:#0d0a1f}
+  .vidbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:#f4f1ff}
+  .vidbar b{font-family:var(--fdisplay);font-weight:600;font-size:.95rem}
+  .vidbar span{color:var(--ink-soft);font-weight:700;font-size:.82rem}
+  .vidbar a{margin-left:auto;text-decoration:none;background:linear-gradient(180deg,var(--accent),var(--accent-d));
+    color:#fff;font-family:var(--fdisplay);font-weight:600;font-size:.85rem;padding:.5em .95em;border-radius:10px}
+  .vidnote{background:#fff7e3;color:#8a6400;font-weight:700;font-size:.86rem;padding:10px 14px;border-radius:12px;margin-bottom:16px}
+
+  /* ---------- telegram pairing steps ---------- */
+  .tgsteps{margin-top:10px}
+  .tgsteps ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+  .tgsteps li{font-weight:700;font-size:.86rem;color:var(--ink)}
+  .tgsteps .once{display:inline-block;margin-top:8px;background:#e9fbf4;color:#1c7a5a;font-weight:800;
+    font-size:.78rem;padding:4px 10px;border-radius:999px}
+  .tgsteps .soon{background:#fff7e3;color:#8a6400;font-weight:800;font-size:.8rem;padding:8px 12px;border-radius:12px;display:inline-block}
+  .tgsteps .manual{color:var(--ink-soft);font-weight:700;font-size:.8rem;margin-top:8px}
+
+  /* ---------- manual mode (secondary, collapsed) ---------- */
+  .manualbox{padding:16px 22px}
+  .manualbox>summary{cursor:pointer;font-family:var(--fdisplay);font-weight:600;color:var(--ink-soft);list-style:none}
+  .manualbox>summary::-webkit-details-marker{display:none}
+  .manualbox>summary::before{content:'\25B8 ';color:var(--accent)}
+  .manualbox[open]>summary{margin-bottom:14px;color:var(--ink)}
+  .manualbox[open]>summary::before{content:'\25BE '}
+
+  /* ---------- action ledger ---------- */
+  .ledger{margin-top:16px;border-top:1px dashed var(--line);padding-top:14px}
+  .ledger h3{font-size:1rem;margin-bottom:8px}
+  .ledger ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+  .ledger li{display:flex;gap:9px;align-items:flex-start;font-weight:600;font-size:.88rem;color:var(--ink)}
+  .ledger li em{color:var(--ink-soft);font-style:normal;font-weight:700;font-size:.8rem;white-space:nowrap}
+  .ledger .none{color:var(--ink-soft);font-weight:600;font-size:.88rem}
+</style>
+<style id="googleidentityservice_button_styles">.qJTHM{-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none;color:#202124;direction:ltr;-webkit-touch-callout:none;font-family:Roboto-Regular,arial,sans-serif;-webkit-font-smoothing:antialiased;font-weight:400;margin:0;overflow:hidden;-webkit-text-size-adjust:100%}.ynRLnc{left:-9999px;position:absolute;top:-9999px}.L6cTce{display:none}.bltWBb{overflow-wrap:break-word;word-break:break-word}.hSRGPd{color:#1a73e8;cursor:pointer;font-weight:500;text-decoration:none}.Bz112c-W3lGp{height:16px;width:16px}.Bz112c-E3DyYd{height:20px;width:20px}.Bz112c-r9oPif{height:24px;width:24px}.Bz112c-u2z5K{height:36px;width:36px}.Bz112c-uaxL4e{border-radius:10px}.LgbsSe-Bz112c{display:block}.S9gUrf-YoZ4jf{border:none;margin:0;padding:0}.S9gUrf-YoZ4jf *{border:none;margin:0;padding:0}.fFW7wc-ibnC6b>.aZ2wEe>div{border-color:#4285f4}.P1ekSe-ZMv3u{-webkit-transition:height .2s linear;transition:height .2s linear}.P1ekSe-ZMv3u>div:first-child{background-color:#1a73e8!important;-webkit-transition:width .3s linear;transition:width .3s linear}.P1ekSe-ZMv3u>div:nth-child(2){background-image:-webkit-gradient(linear,left top,right top,from(rgba(255,255,255,.7)),to(rgba(255,255,255,.7))),-webkit-gradient(linear,left top,right top,from(#1a73e8),to(#1a73e8))!important;background-image:-webkit-linear-gradient(left,rgba(255,255,255,.7),rgba(255,255,255,.7)),-webkit-linear-gradient(left,#1a73e8,#1a73e8)!important;background-image:linear-gradient(90deg,rgba(255,255,255,.7),rgba(255,255,255,.7)),linear-gradient(90deg,#1a73e8,#1a73e8)!important}.P1ekSe-ZMv3u>div:nth-child(3){background-image:-webkit-gradient(linear,left top,right top,from(rgba(255,255,255,.7)),to(rgba(255,255,255,.7))),-webkit-gradient(linear,left top,right top,from(#1a73e8),to(#1a73e8))!important;background-image:-webkit-linear-gradient(left,rgba(255,255,255,.7),rgba(255,255,255,.7)),-webkit-linear-gradient(left,#1a73e8,#1a73e8)!important;background-image:linear-gradient(90deg,rgba(255,255,255,.7),rgba(255,255,255,.7)),linear-gradient(90deg,#1a73e8,#1a73e8)!important}.haAclf{display:inline-block}.nsm7Bb-HzV7m-LgbsSe{border-radius:4px;box-sizing:border-box;-webkit-transition:background-color .218s,border-color .218s;transition:background-color .218s,border-color .218s;-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none;-webkit-appearance:none;background-color:#fff;background-image:none;border:1px solid #dadce0;color:#3c4043;cursor:pointer;font-family:Google Sans,arial,sans-serif;font-size:.875rem;height:40px;letter-spacing:.25px;outline:none;overflow:hidden;padding:0 12px;position:relative;text-align:center;vertical-align:middle;white-space:nowrap;width:auto}.nsm7Bb-HzV7m-LgbsSe.TzA9Ye-LgbsSe{font-size:14px}@media screen and (-ms-high-contrast:active){.nsm7Bb-HzV7m-LgbsSe{border:2px solid windowText;color:windowText}}@media screen and (preferes-contrast:more){.nsm7Bb-HzV7m-LgbsSe{color:#000}}.nsm7Bb-HzV7m-LgbsSe.pSzOP-SxQuSe{font-size:.875rem;height:32px;letter-spacing:.25px;padding:0 10px}.nsm7Bb-HzV7m-LgbsSe.pSzOP-SxQuSe.TzA9Ye-LgbsSe{font-size:14px}.nsm7Bb-HzV7m-LgbsSe.purZT-SxQuSe{font-size:.6875rem;height:20px;letter-spacing:.3px;padding:0 8px}.nsm7Bb-HzV7m-LgbsSe.purZT-SxQuSe.TzA9Ye-LgbsSe{font-size:11px}.nsm7Bb-HzV7m-LgbsSe.Bz112c-LgbsSe{padding:0;width:40px}.nsm7Bb-HzV7m-LgbsSe.Bz112c-LgbsSe.pSzOP-SxQuSe{width:32px}.nsm7Bb-HzV7m-LgbsSe.Bz112c-LgbsSe.purZT-SxQuSe{width:20px}.nsm7Bb-HzV7m-LgbsSe.JGcpL-RbRzK{border-radius:20px}.nsm7Bb-HzV7m-LgbsSe.JGcpL-RbRzK.pSzOP-SxQuSe{border-radius:16px}.nsm7Bb-HzV7m-LgbsSe.JGcpL-RbRzK.purZT-SxQuSe{border-radius:10px}.nsm7Bb-HzV7m-LgbsSe.i5vt6e-to915-Ia7Qfc{border:1px solid #8e918f;background-color:#131314;color:#e3e3e3}.nsm7Bb-HzV7m-LgbsSe.MFS4be-Ia7Qfc{border:none;color:#fff}.nsm7Bb-HzV7m-LgbsSe.MFS4be-v3pZbf-Ia7Qfc{background-color:#1a73e8}.nsm7Bb-HzV7m-LgbsSe.MFS4be-JaPV2b-Ia7Qfc{background-color:#202124;color:#e8eaed}@media screen and (prefers-contrast:more){.nsm7Bb-HzV7m-LgbsSe.MFS4be-JaPV2b-Ia7Qfc{color:#fff}}.nsm7Bb-HzV7m-LgbsSe .nsm7Bb-HzV7m-LgbsSe-Bz112c{height:18px;margin-right:8px;min-width:18px;width:18px}.nsm7Bb-HzV7m-LgbsSe.pSzOP-SxQuSe .nsm7Bb-HzV7m-LgbsSe-Bz112c{height:14px;min-width:14px;width:14px}.nsm7Bb-HzV7m-LgbsSe.purZT-SxQuSe .nsm7Bb-HzV7m-LgbsSe-Bz112c{height:10px;min-width:10px;width:10px}.nsm7Bb-HzV7m-LgbsSe.jVeSEe .nsm7Bb-HzV7m-LgbsSe-Bz112c{margin-left:8px;margin-right:-4px}.nsm7Bb-HzV7m-LgbsSe.Bz112c-LgbsSe .nsm7Bb-HzV7m-LgbsSe-Bz112c{margin:0;padding:10px}.nsm7Bb-HzV7m-LgbsSe.Bz112c-LgbsSe.pSzOP-SxQuSe .nsm7Bb-HzV7m-LgbsSe-Bz112c{padding:8px}.nsm7Bb-HzV7m-LgbsSe.Bz112c-LgbsSe.purZT-SxQuSe .nsm7Bb-HzV7m-LgbsSe-Bz112c{padding:4px}.nsm7Bb-HzV7m-LgbsSe .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf{border-top-left-radius:3px;border-bottom-left-radius:3px;display:-webkit-box;display:-webkit-flex;display:flex;-webkit-box-pack:center;-webkit-justify-content:center;justify-content:center;-webkit-box-align:center;-webkit-align-items:center;align-items:center;background-color:#fff;height:36px;margin-left:-10px;margin-right:12px;min-width:36px;width:36px}.nsm7Bb-HzV7m-LgbsSe .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf .nsm7Bb-HzV7m-LgbsSe-Bz112c,.nsm7Bb-HzV7m-LgbsSe.Bz112c-LgbsSe .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf .nsm7Bb-HzV7m-LgbsSe-Bz112c{margin:0;padding:0}.nsm7Bb-HzV7m-LgbsSe.pSzOP-SxQuSe .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf{height:28px;margin-left:-8px;margin-right:10px;min-width:28px;width:28px}.nsm7Bb-HzV7m-LgbsSe.purZT-SxQuSe .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf{height:16px;margin-left:-6px;margin-right:8px;min-width:16px;width:16px}.nsm7Bb-HzV7m-LgbsSe.Bz112c-LgbsSe .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf{border-radius:3px;margin-left:2px;margin-right:0;padding:0}.nsm7Bb-HzV7m-LgbsSe.JGcpL-RbRzK .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf{border-radius:18px}.nsm7Bb-HzV7m-LgbsSe.pSzOP-SxQuSe.JGcpL-RbRzK .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf{border-radius:14px}.nsm7Bb-HzV7m-LgbsSe.purZT-SxQuSe.JGcpL-RbRzK .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf{border-radius:8px}.nsm7Bb-HzV7m-LgbsSe .nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb{display:-webkit-box;display:-webkit-flex;display:flex;-webkit-align-items:center;-webkit-box-align:center;align-items:center;-webkit-flex-direction:row;-webkit-box-orient:horizontal;-webkit-box-direction:normal;flex-direction:row;-webkit-box-pack:justify;-webkit-justify-content:space-between;justify-content:space-between;-webkit-flex-wrap:nowrap;flex-wrap:nowrap;height:100%;position:relative;width:100%}.nsm7Bb-HzV7m-LgbsSe .oXtfBe-l4eHX{-webkit-box-pack:center;-webkit-justify-content:center;justify-content:center}.nsm7Bb-HzV7m-LgbsSe .nsm7Bb-HzV7m-LgbsSe-BPrWId{-webkit-flex-grow:1;-webkit-box-flex:1;flex-grow:1;font-family:Google Sans,arial,sans-serif;font-weight:500;overflow:hidden;text-overflow:ellipsis;vertical-align:top}.nsm7Bb-HzV7m-LgbsSe.purZT-SxQuSe .nsm7Bb-HzV7m-LgbsSe-BPrWId{font-weight:300}.nsm7Bb-HzV7m-LgbsSe .oXtfBe-l4eHX .nsm7Bb-HzV7m-LgbsSe-BPrWId{-webkit-flex-grow:0;-webkit-box-flex:0;flex-grow:0}.nsm7Bb-HzV7m-LgbsSe .nsm7Bb-HzV7m-LgbsSe-MJoBVe{-webkit-transition:background-color .218s;transition:background-color .218s;bottom:0;left:0;position:absolute;right:0;top:0}.nsm7Bb-HzV7m-LgbsSe:focus,.nsm7Bb-HzV7m-LgbsSe:hover{box-shadow:none;border-color:rgb(210,227,252);outline:none}.nsm7Bb-HzV7m-LgbsSe:focus-within{outline:2px solid #00639b;border-color:transparent}.nsm7Bb-HzV7m-LgbsSe:hover .nsm7Bb-HzV7m-LgbsSe-MJoBVe{background:rgba(66,133,244,.08)}.nsm7Bb-HzV7m-LgbsSe:active .nsm7Bb-HzV7m-LgbsSe-MJoBVe,.nsm7Bb-HzV7m-LgbsSe:focus .nsm7Bb-HzV7m-LgbsSe-MJoBVe{background:rgba(66,133,244,.1)}.nsm7Bb-HzV7m-LgbsSe.i5vt6e-to915-Ia7Qfc:hover .nsm7Bb-HzV7m-LgbsSe-MJoBVe{background:rgba(255,255,255,.08)}.nsm7Bb-HzV7m-LgbsSe.i5vt6e-to915-Ia7Qfc:active .nsm7Bb-HzV7m-LgbsSe-MJoBVe,.nsm7Bb-HzV7m-LgbsSe.i5vt6e-to915-Ia7Qfc:focus .nsm7Bb-HzV7m-LgbsSe-MJoBVe{background:rgba(255,255,255,.12)}.nsm7Bb-HzV7m-LgbsSe.MFS4be-Ia7Qfc:hover .nsm7Bb-HzV7m-LgbsSe-MJoBVe{background:rgba(255,255,255,.24)}.nsm7Bb-HzV7m-LgbsSe.MFS4be-Ia7Qfc:active .nsm7Bb-HzV7m-LgbsSe-MJoBVe,.nsm7Bb-HzV7m-LgbsSe.MFS4be-Ia7Qfc:focus .nsm7Bb-HzV7m-LgbsSe-MJoBVe{background:rgba(255,255,255,.32)}.nsm7Bb-HzV7m-LgbsSe .n1UuX-DkfjY{border-radius:50%;display:-webkit-box;display:-webkit-flex;display:flex;height:20px;margin-left:-4px;margin-right:8px;min-width:20px;width:20px}.nsm7Bb-HzV7m-LgbsSe.jVeSEe .nsm7Bb-HzV7m-LgbsSe-BPrWId{font-family:Roboto;font-size:12px;text-align:left}.nsm7Bb-HzV7m-LgbsSe.jVeSEe .nsm7Bb-HzV7m-LgbsSe-BPrWId .K4efff .fmcmS,.nsm7Bb-HzV7m-LgbsSe.jVeSEe .nsm7Bb-HzV7m-LgbsSe-BPrWId .ssJRIf{overflow:hidden;text-overflow:ellipsis}.nsm7Bb-HzV7m-LgbsSe.jVeSEe .nsm7Bb-HzV7m-LgbsSe-BPrWId .K4efff{display:-webkit-box;display:-webkit-flex;display:flex;-webkit-align-items:center;-webkit-box-align:center;align-items:center;color:#5f6368;fill:#5f6368;font-size:11px;font-weight:400}.nsm7Bb-HzV7m-LgbsSe.jVeSEe.i5vt6e-to915-Ia7Qfc .nsm7Bb-HzV7m-LgbsSe-BPrWId .K4efff{color:#c4c7c5;fill:#c4c7c5}.nsm7Bb-HzV7m-LgbsSe.jVeSEe.MFS4be-Ia7Qfc .nsm7Bb-HzV7m-LgbsSe-BPrWId .K4efff{color:#e8eaed;fill:#e8eaed}@media screen and (prefers-contrast:more){.nsm7Bb-HzV7m-LgbsSe.jVeSEe .nsm7Bb-HzV7m-LgbsSe-BPrWId .K4efff,.nsm7Bb-HzV7m-LgbsSe.jVeSEe.MFS4be-Ia7Qfc .nsm7Bb-HzV7m-LgbsSe-BPrWId .K4efff{color:#000;fill:#000}}.nsm7Bb-HzV7m-LgbsSe.jVeSEe .nsm7Bb-HzV7m-LgbsSe-BPrWId .K4efff .Bz112c{height:18px;margin:-3px -3px -3px 2px;min-width:18px;width:18px}.nsm7Bb-HzV7m-LgbsSe.jVeSEe .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf{border-top-left-radius:0;border-bottom-left-radius:0;border-top-right-radius:3px;border-bottom-right-radius:3px;margin-left:12px;margin-right:-10px}.nsm7Bb-HzV7m-LgbsSe.jVeSEe.JGcpL-RbRzK .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf{border-radius:18px}.L5Fo6c-sM5MNb{border:0;display:block;left:0;position:relative;top:0}.L5Fo6c-bF1uUb{border-radius:4px;bottom:0;cursor:pointer;left:0;position:absolute;right:0;top:0}.L5Fo6c-bF1uUb:focus{border:none;outline:none}sentinel{}</style><link id="googleidentityservice" type="text/css" media="all" href="https://accounts.google.com/gsi/style" rel="stylesheet"></head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="brand" href="/">
+      <svg viewBox="0 0 48 38" aria-hidden="true"><path d="M14 34c-7 0-12-4.6-12-11 0-5.6 4.3-10 10-10.3C14 6.8 19 3 25 3c7.4 0 13 5.3 13.4 12.3C43 16 46 19.4 46 24c0 6-4.8 10-11 10z" fill="#fff" stroke="#cdd9f0" stroke-width="2"></path><circle cx="19" cy="21" r="2.4" fill="#2b2550"></circle><circle cx="29" cy="21" r="2.4" fill="#2b2550"></circle><path d="M20 26c2.4 2.2 5.6 2.2 8 0" stroke="#2b2550" stroke-width="2" fill="none" stroke-linecap="round"></path></svg>
+      Nimbo
+    </a>
+    <div id="authArea"><div id="gbtn" class="gbtn"><div class="S9gUrf-YoZ4jf" style="position: relative;"><div><div tabindex="0" role="button" aria-labelledby="button-label" class="nsm7Bb-HzV7m-LgbsSe  TzA9Ye-LgbsSe hJDwNd-SxQuSe MFS4be-v3pZbf-Ia7Qfc MFS4be-Ia7Qfc JGcpL-RbRzK"><div class="nsm7Bb-HzV7m-LgbsSe-MJoBVe"></div><div class="nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb "><div class="nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf"><div class="nsm7Bb-HzV7m-LgbsSe-Bz112c"><svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="LgbsSe-Bz112c"><g><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></g></svg></div></div><span class="nsm7Bb-HzV7m-LgbsSe-BPrWId">Continue with Google</span><span class="L6cTce" id="button-label">Continue with Google. Opens in new tab</span></div></div></div><iframe src="https://accounts.google.com/gsi/button?theme=filled_blue&amp;size=large&amp;text=continue_with&amp;shape=pill&amp;is_fedcm_supported=true&amp;client_id=973830686525-uol5enesb26gjbdoa8ss4e34g63g02ov.apps.googleusercontent.com&amp;iframe_id=gsi_830870_181335&amp;cas=I4Hp7C%2Fg9gR8EpCkLph7eIXi3oaA3b29MK7w%2BqbcgfM" class="L5Fo6c-PQbLGe" allow="identity-credentials-get" id="gsi_830870_181335" title="Sign in with Google Button" style="display: block; position: relative; top: 0px; left: 0px; height: 0px; width: 0px; border: 0px;"></iframe></div></div></div>
+  </div>
+
+  <div class="hero">
+    <h1>Your whole content team,<br>in one agent you just talk to.</h1>
+    <p>3 video ideas, a full script, title, thumbnail concept and hashtags — grounded in what's trending right now.</p>
+  </div>
+
+  <!-- GATE: signed out -->
+  <div id="gate" class="box gate" style="display: block;">
+    <h2>Sign in to start ☁️</h2>
+    <p>Create your free Nimbo account to generate briefs, save your brand voice, and keep your history.</p>
+    <div id="gbtnBig" class="gbtn"><div class="S9gUrf-YoZ4jf" style="position: relative;"><div><div tabindex="0" role="button" aria-labelledby="button-label" class="nsm7Bb-HzV7m-LgbsSe  TzA9Ye-LgbsSe hJDwNd-SxQuSe MFS4be-v3pZbf-Ia7Qfc MFS4be-Ia7Qfc JGcpL-RbRzK"><div class="nsm7Bb-HzV7m-LgbsSe-MJoBVe"></div><div class="nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb "><div class="nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf"><div class="nsm7Bb-HzV7m-LgbsSe-Bz112c"><svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="LgbsSe-Bz112c"><g><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></g></svg></div></div><span class="nsm7Bb-HzV7m-LgbsSe-BPrWId">Continue with Google</span><span class="L6cTce" id="button-label">Continue with Google. Opens in new tab</span></div></div></div><iframe src="https://accounts.google.com/gsi/button?theme=filled_blue&amp;size=large&amp;text=continue_with&amp;shape=pill&amp;is_fedcm_supported=true&amp;client_id=973830686525-uol5enesb26gjbdoa8ss4e34g63g02ov.apps.googleusercontent.com&amp;iframe_id=gsi_830886_400953&amp;cas=I4Hp7C%2Fg9gR8EpCkLph7eIXi3oaA3b29MK7w%2BqbcgfM" class="L5Fo6c-PQbLGe" allow="identity-credentials-get" id="gsi_830886_400953" title="Sign in with Google Button" style="display: block; position: relative; top: 0px; left: 0px; height: 0px; width: 0px; border: 0px;"></iframe></div></div>
+    <div class="finePrint">Free · 10 briefs/day while in beta</div>
+  </div>
+
+  <!-- APP: signed in -->
+  <!-- ONE-TIME SETUP WIZARD -->
+  <div id="wiz" class="wiz">
+    <h2>Let us set up your Nimbo</h2>
+    <div class="wsub">This is a one-time setup. After this Nimbo works on its own, so tell it everything.</div>
+    <div class="wizbar"><i id="wizBar"></i></div>
+    <div class="wizcount" id="wizCount">Step 1 of 6</div>
+
+    <div class="wizstep on" data-step="1">
+      <div class="fld"><label>Your name / channel name</label><input type="text" id="w_creatorName" placeholder="e.g. FitMom Priya"></div>
+      <div class="fld"><label>Your niche</label><div class="hl">What is your content about?</div><input type="text" id="w_niche" placeholder="e.g. home workouts for busy parents"></div>
+      <div class="fld"><label>Recurring themes</label><div class="hl">Comma separated - the topics you keep coming back to</div><input type="text" id="w_subTopics" placeholder="e.g. 10-min workouts, meal prep, mom hacks"></div>
+      <div class="fld"><label>Who is your audience?</label><div class="hl">Age, situation, what they struggle with</div><textarea id="w_audience" placeholder="e.g. moms aged 28-40 with toddlers, no time for the gym, want quick results at home"></textarea></div>
+      <div class="fld"><label>Language of your content</label>
+        <select id="w_language"><option>English</option><option>Hindi</option><option>Hinglish</option><option>Spanish</option><option>Portuguese</option><option>Arabic</option><option>Other</option></select></div>
+      <div class="fld"><label>Country / region</label><input type="text" id="w_country" placeholder="e.g. India"></div>
+    </div>
+
+    <div class="wizstep" data-step="2">
+      <div class="fld"><label>Which platforms do you post on?</label><div class="hl">Pick all that apply</div>
+        <div class="chips" data-group="platforms" data-multi="1">
+          <button type="button" class="chipb" data-v="youtube_long">YouTube (long)</button>
+          <button type="button" class="chipb" data-v="shorts">YouTube Shorts</button>
+          <button type="button" class="chipb" data-v="instagram">Instagram Reels</button>
+          <button type="button" class="chipb" data-v="tiktok">TikTok</button>
+          <button type="button" class="chipb" data-v="facebook">Facebook</button>
+        </div></div>
+      <div class="fld"><label>Main format for Nimbo to write</label>
+        <select id="w_platform">
+          <option value="short">Short-form (Reels / TikTok / Shorts)</option>
+          <option value="instagram">Instagram Reels</option>
+          <option value="tiktok">TikTok</option>
+          <option value="shorts">YouTube Shorts</option>
+          <option value="youtube_long">YouTube - long video</option>
+        </select></div>
+      <div class="fld"><label>Your channel links</label><div class="hl">Optional - helps Nimbo learn your style</div>
+        <input type="text" id="w_ytLink" placeholder="YouTube channel URL" style="margin-bottom:8px">
+        <input type="text" id="w_igLink" placeholder="Instagram profile URL" style="margin-bottom:8px">
+        <input type="text" id="w_ttLink" placeholder="TikTok profile URL"></div>
+      <div class="fld"><label>How big is your audience?</label>
+        <select id="w_size"><option>Just starting</option><option>Under 1K</option><option>1K - 10K</option><option>10K - 100K</option><option>100K - 1M</option><option>1M+</option></select></div>
+    </div>
+
+    <div class="wizstep" data-step="3">
+      <div class="fld"><label>Your tone</label><div class="hl">Pick all that fit</div>
+        <div class="chips" data-group="tone" data-multi="1">
+          <button type="button" class="chipb" data-v="funny">Funny</button>
+          <button type="button" class="chipb" data-v="educational">Educational</button>
+          <button type="button" class="chipb" data-v="inspiring">Inspiring</button>
+          <button type="button" class="chipb" data-v="bold">Bold / edgy</button>
+          <button type="button" class="chipb" data-v="calm">Calm</button>
+          <button type="button" class="chipb" data-v="storytelling">Storytelling</button>
+          <button type="button" class="chipb" data-v="motivational">Motivational</button>
+        </div></div>
+      <div class="fld"><label>Do you show your face?</label>
+        <div class="chips" data-group="onCamera">
+          <button type="button" class="chipb" data-v="face">I show my face</button>
+          <button type="button" class="chipb" data-v="faceless">Faceless</button>
+        </div></div>
+      <div class="fld"><label>Video style</label>
+        <select id="w_videoStyle"><option>Talking head</option><option>Voiceover + b-roll</option><option>Tutorial / screen recording</option><option>Vlog</option><option>Animation / motion graphics</option><option>Mixed</option></select></div>
+      <div class="fld"><label>Your brand voice</label><div class="hl">How do you talk? Nimbo will write exactly like this.</div>
+        <textarea id="w_brand" placeholder="e.g. energetic and funny, short punchy sentences, talks like a friend, uses emojis, never corporate"></textarea></div>
+      <div class="fld"><label>Never do / never say</label><div class="hl">Hard rules Nimbo must always respect</div>
+        <textarea id="w_avoid" placeholder="e.g. no swearing, no diet shaming, never promise quick weight loss, no political topics"></textarea></div>
+      <div class="fld"><label>Creators you admire</label><div class="hl">Style reference only - Nimbo will never copy them</div><input type="text" id="w_inspirations" placeholder="e.g. @somechannel, @another"></div>
+    </div>
+
+    <div class="wizstep" data-step="4">
+      <div class="fld"><label>How often do you want to post?</label>
+        <select id="w_frequency"><option>1 per week</option><option>2 per week</option><option>3 per week</option><option>5 per week</option><option>Daily</option><option>2x daily</option></select></div>
+      <div class="fld"><label>Best days to post</label>
+        <div class="chips" data-group="postDays" data-multi="1">
+          <button type="button" class="chipb" data-v="Mon">Mon</button><button type="button" class="chipb" data-v="Tue">Tue</button>
+          <button type="button" class="chipb" data-v="Wed">Wed</button><button type="button" class="chipb" data-v="Thu">Thu</button>
+          <button type="button" class="chipb" data-v="Fri">Fri</button><button type="button" class="chipb" data-v="Sat">Sat</button>
+          <button type="button" class="chipb" data-v="Sun">Sun</button>
+        </div></div>
+      <div class="fld"><label>Preferred posting time</label><div class="hl">Your local time</div><input type="text" id="w_postTime" placeholder="e.g. 7:00 PM"></div>
+    </div>
+
+    <div class="wizstep" data-step="5">
+      <div class="fld"><label>How should Nimbo make your videos?</label><div class="hl">You can change this anytime</div>
+        <div class="chips" data-group="videoTool">
+          <button type="button" class="chipb" data-v="free_faceless">Free faceless video (no subscription)</button>
+          <button type="button" class="chipb" data-v="heygen">My HeyGen account</button>
+          <button type="button" class="chipb" data-v="other">Another tool I pay for</button>
+        </div></div>
+      <div class="fld" id="w_keyWrap" style="display:none"><label>Your tool API key</label><div class="hl">Stored privately. Nimbo uses YOUR subscription - we never charge for it.</div>
+        <input type="text" id="w_videoToolKey" placeholder="paste your API key"></div>
+      <div class="fld"><label>Voice for your videos</label>
+        <select id="w_voicePref"><option>Natural female</option><option>Natural male</option><option>Energetic female</option><option>Calm male</option><option>My own cloned voice (later)</option></select></div>
+      <div class="fld"><label>Caption style</label>
+        <select id="w_captionStyle"><option>Big word-by-word (reels style)</option><option>Simple bottom captions</option><option>No captions</option></select></div>
+      <div class="fld"><label>Background music</label>
+        <select id="w_music"><option>Upbeat</option><option>Chill</option><option>Cinematic</option><option>Trending sound style</option><option>No music</option></select></div>
+    </div>
+
+    <div class="wizstep" data-step="6">
+      <div class="fld"><label>How automatic should Nimbo be?</label>
+        <div class="chips" data-group="automation">
+          <button type="button" class="chipb" data-v="approve_first">Prepare everything, I approve before posting</button>
+          <button type="button" class="chipb" data-v="full_auto">Full auto - create AND post by itself</button>
+        </div></div>
+      <div class="fld"><label>What may Nimbo do on its own?</label><div class="hl">Pick all you allow</div>
+        <div class="chips" data-group="perms" data-multi="1">
+          <button type="button" class="chipb" data-v="ideas">Find ideas + write scripts</button>
+          <button type="button" class="chipb" data-v="video">Make the videos</button>
+          <button type="button" class="chipb" data-v="schedule">Schedule posts</button>
+          <button type="button" class="chipb" data-v="post">Publish to my channels</button>
+          <button type="button" class="chipb" data-v="comments">Reply to comments</button>
+        </div></div>
+      <div class="fld"><label>Daily autopilot</label><div class="hl">Nimbo prepares fresh content for you every day</div>
+        <div class="chips" data-group="autopilot">
+          <button type="button" class="chipb" data-v="on">Yes, run daily</button>
+          <button type="button" class="chipb" data-v="off">Not yet</button>
+        </div></div>
+    </div>
+
+    <div class="wiznav">
+      <button type="button" class="btnghost" id="wizBack">Back</button>
+      <button type="button" class="btn" id="wizNext">Next</button>
+    </div>
+    <div class="err" id="wizErr"></div>
+  </div>
+
+  <!-- PAYWALL -->
+  <div id="paywall" class="pay">
+    <div class="payhead">
+      <h2>Pick your plan to start</h2>
+      <p>Nimbo replaces the $290+/month pile of creator tools. One agent, one price.</p>
+      <div class="foundbadge" id="foundBadge">Founding creator - 30% off for life</div>
+    </div>
+    <div class="plans" id="planCards"></div>
+    <div class="paynote" id="payNote">Cancel anytime. Your plan sets how many videos Nimbo makes for you each month.</div>
+  </div>
+
+  <div id="appArea" style="display:none">
+    <div class="freshbanner" id="freshBanner">
+      <span class="fb-t" id="freshText">🎉 Nimbo made a fresh brief for you while you were away!</span>
+      <button id="freshOpen">See it ☁️</button>
+    </div>
+    <!-- ================= TALK TO NIMBO (the autonomous agent) ================= -->
+    <div class="agentbox">
+      <div class="agenthead">
+        <h2>Talk to Nimbo</h2>
+        <span class="agentpill" id="agentState">Agent ready</span>
+      </div>
+      <p class="agentsub">Just tell Nimbo what you need and it does the work. Write in any language &mdash; it always replies in English.</p>
+
+      <div class="chat" id="chat"></div>
+
+      <div class="askrow">
+        <input id="askInput" type="text" placeholder="e.g. make a reel about gym motivation" autocomplete="off" />
+        <button class="btn" type="button" id="askSend">Send</button>
+      </div>
+      <div class="chips" id="askChips">
+        <b data-ask="make a reel for me">make a reel</b>
+        <b data-ask="what is trending right now">what's trending</b>
+        <b data-ask="work on your own every day">work on your own daily</b>
+        <b data-ask="how many videos do I have left">videos left</b>
+        <b data-ask="what have you made so far">what have you made</b>
+      </div>
+
+      <!-- Telegram: message or voice-note Nimbo from your phone -->
+      <div class="chan" id="chanTg">
+        <span class="ci">💬</span>
+        <span class="ct">
+          <b>Message Nimbo from your phone</b>
+          <span id="tgSub">Loading&hellip;</span>
+          <div class="tgsteps" id="tgSteps"></div>
+        </span>
+        <span id="tgAction"></span>
+      </div>
+
+      <!-- What Nimbo did on its own -->
+      <div class="ledger" id="ledger">
+        <h3>🤖 What Nimbo did on its own</h3>
+        <div class="none" id="ledgerNone">Nothing yet. Turn on autopilot, or ask Nimbo to make something.</div>
+        <ul id="ledgerList"></ul>
+      </div>
+    </div>
+
+    <details class="box manualbox">
+      <summary>⚙️ Manual mode &amp; settings</summary>
+      <form id="f">
+        <input id="niche" type="text" placeholder="e.g. home workouts for busy parents" autocomplete="off">
+        <select id="platform" aria-label="Which platform?">
+          <option value="short">Short-form (Reels / TikTok / Shorts)</option>
+          <option value="instagram">Instagram Reels</option>
+          <option value="tiktok">TikTok</option>
+          <option value="shorts">YouTube Shorts</option>
+          <option value="youtube_long">YouTube — long video</option>
+        </select>
+        <button class="btn" id="go" type="submit">Generate my brief ☁️</button>
+      </form>
+      <div class="examples">Try:
+        <b data-ex="home workouts for busy parents">busy-parent workouts</b>·
+        <b data-ex="personal finance tips for college students">student finance</b>·
+        <b data-ex="easy 15-minute vegetarian recipes">quick veg recipes</b>
+      </div>
+      <details class="brandbox">
+        <summary>✍️ Brand voice (optional) — teach Nimbo your style</summary>
+        <textarea id="brand" placeholder="e.g. energetic and funny, speaks directly to Gen-Z gym beginners, short punchy sentences, lots of emojis"></textarea>
+        <div class="hint">Nimbo remembers this and writes every brief in your voice. Saved automatically when you generate.</div>
+      </details>
+      <label class="autopilot">
+        <input type="checkbox" id="autopilot">
+        <span class="switch"></span>
+        <span>🤖 Autopilot — let Nimbo make a fresh brief for you every day<br><span class="ap-sub">Runs on its own. You'll find it waiting here when you come back.</span></span>
+      </label>
+      <button type="button" class="editsetup" id="editSetup">Edit my setup</button>
+      <button type="button" class="editsetup" id="changePlan" style="margin-left:14px">Change plan</button>
+    </details>
+
+    <div class="loading" id="loading">
+      <svg class="cloud-spin" viewBox="0 0 66 52"><path d="M20 46c-9 0-15-6-15-13 0-6 5-11 11-12C17 11 24 6 32 6c10 0 17 7 17 16 6 1 10 5 10 11 0 7-6 12-14 12z" fill="#fff" stroke="#cdd9f0" stroke-width="3"></path><circle cx="26" cy="27" r="3" fill="#2b2550"></circle><circle cx="39" cy="27" r="3" fill="#2b2550"></circle><path d="M27 33c3 3 8 3 11 0" stroke="#2b2550" stroke-width="3" fill="none" stroke-linecap="round"></path></svg>
+      <p id="loadmsg">Nimbo is researching your niche…</p>
+    </div>
+    <div class="err" id="err"></div>
+
+    <div class="result" id="result">
+      <div class="niche" id="rNiche"></div>
+      <div class="sec" id="trendSec" style="display:none">
+        <div class="lbl"><span class="em">🔥</span> Trending now · last 30 days</div>
+        <div class="trend" id="rTrend"></div>
+      </div>
+      <div class="sec">
+        <div class="lbl"><span class="em">💡</span> 3 video ideas</div>
+        <div class="ideas" id="rIdeas"></div>
+      </div>
+      <div class="sec">
+        <div class="lbl"><span class="em">🎬</span> Full script <button class="copy" id="copyScript">Copy</button></div>
+        <div class="script" id="rScript"></div>
+      </div>
+      <div class="sec">
+        <div class="lbl"><span class="em">🏷️</span> Title &amp; thumbnail</div>
+        <div class="kv" style="margin-bottom:12px"><div class="t" id="rTitle"></div><div class="sub" id="rTitleLen"></div></div>
+        <div class="thumbframe" id="rThumbFrame">
+          <img id="rThumbImg" class="thumbimg" alt="Nimbo-generated thumbnail">
+          <div class="thumbtext" id="rThumbText"></div>
+        </div>
+        <div class="thumbcap" id="rThumbCap" style="display:none">☁️ Nimbo made this thumbnail · <a id="rThumbDl" href="#" target="_blank" rel="noopener">open full image</a></div>
+      </div>
+      <div class="sec">
+        <div class="lbl"><span class="em">📝</span> Description</div>
+        <div class="kv" id="rDesc"></div>
+      </div>
+      <div class="sec">
+        <div class="lbl"><span class="em"># </span> Hashtags <button class="copy" id="copyTags">Copy</button></div>
+        <div class="tags" id="rTags"></div>
+      </div>
+    </div>
+
+    <div class="sec" id="briefsArea" style="display:none">
+      <div class="lbl"><span class="em">🗂️</span> Your recent briefs</div>
+      <div id="briefList" class="brieflist"></div>
+    </div>
+  </div>
+
+  <div class="foot">This is the engine that will soon run on autopilot — Nimbo doing this for you, every day. ☁️</div>
+</div>
+
+<script>
+  var CLIENT_ID="973830686525-uol5enesb26gjbdoa8ss4e34g63g02ov.apps.googleusercontent.com";
+  var FN="/.netlify/functions";
+  var token=""; try{ token=localStorage.getItem('nimbo_token')||""; }catch(e){}
+  var briefsCache=[], gisReady=false;
+
+  function setToken(t){ token=t; try{localStorage.setItem('nimbo_token',t);}catch(e){} }
+  function clearToken(){ token=""; try{localStorage.removeItem('nimbo_token');}catch(e){} }
+  function el(tag,cls,txt){var e=document.createElement(tag); if(cls)e.className=cls; if(txt!=null)e.textContent=txt; return e;}
+  function $(id){return document.getElementById(id);}
+
+  // ---------- Google Sign-In ----------
+  window.onGisLoad=function(){
+    if(!window.google||!google.accounts) return;
+    gisReady=true;
+    google.accounts.id.initialize({ client_id:CLIENT_ID, callback:onCred, auto_select:false });
+    renderGButtons();
+  };
+  function renderGButtons(){
+    if(!gisReady) return;
+    ['gbtn','gbtnBig'].forEach(function(id){ var e=$(id); if(e){ e.innerHTML=''; try{ google.accounts.id.renderButton(e,{theme:'filled_blue',size:'large',text:'continue_with',shape:'pill'}); }catch(err){} } });
+  }
+  function onCred(resp){ if(resp&&resp.credential){ setToken(resp.credential); loadSession(); } }
+  function signOut(){ clearToken(); if(window.google&&google.accounts){ try{google.accounts.id.disableAutoSelect();}catch(e){} } showGate(); }
+
+  // ---------- Session / UI state ----------
+  function showGate(){
+    var wz=$('wiz'); if(wz) wz.style.display='none';
+    var pw=$('paywall'); if(pw) pw.style.display='none';
+    $('appArea').style.display='none';
+    $('gate').style.display='block';
+    $('authArea').innerHTML='<div id="gbtn" class="gbtn"></div>';
+    renderGButtons();
+  }
+  function setAuthChip(user, usage){
+    var a=$('authArea'); a.innerHTML='';
+    var chip=el('div','userchip');
+    if(user.picture){ var img=document.createElement('img'); img.src=user.picture; img.referrerPolicy='no-referrer'; chip.appendChild(img); }
+    chip.appendChild(el('span','nm',user.name||user.email||'You'));
+    var up=el('span','usagepill',''); up.id='usagePill'; chip.appendChild(up);
+    var so=el('button','signout','Sign out'); so.onclick=signOut; chip.appendChild(so);
+    a.appendChild(chip);
+    updateUsage(usage);
+  }
+  function updateUsage(u){
+    var p=$('usagePill'); if(!p||!u) return;
+    var pn = (myProfile && myProfile.plan) ? (myProfile.plan.charAt(0).toUpperCase()+myProfile.plan.slice(1)+' - ') : '';
+    p.textContent = pn + (u.count||0) + '/' + (u.limit||0) + ' this month';
+  }
+  function loadSession(){
+    if(!token){ showGate(); return; }
+    fetch(FN+'/profile',{headers:{'Authorization':'Bearer '+token}})
+      .then(function(r){ if(r.status===401){ clearToken(); showGate(); return null; } return r.json(); })
+      .then(function(d){ if(d&&d.user){ onSignedIn(d); } })
+      .catch(function(){ showGate(); });
+  }
+  function onSignedIn(d){
+    $('gate').style.display='none';
+    setAuthChip(d.user, d.usage);
+    myProfile = d.profile || null;
+    if(d.plans) PLANS = d.plans;
+    if(typeof d.foundingDiscount === 'number') DISCOUNT = d.foundingDiscount;
+    if(!d.profile || !d.profile.onboarded){ openWizard(d.profile); return; }
+    var _pl = d.profile.plan;
+    var _active = _pl && (!d.profile.planStatus || d.profile.planStatus === 'active');
+    if(!_active){ openPaywall(); return; }
+    $('wiz').style.display='none';
+    $('paywall').style.display='none';
+    $('appArea').style.display='block';
+    if(d.profile){
+      if(d.profile.niche) $('niche').value=d.profile.niche;
+      if(d.profile.platform) $('platform').value=d.profile.platform;
+      if(d.profile.brand) $('brand').value=d.profile.brand;
+      $('autopilot').checked=!!d.profile.autopilot;
+    }
+    briefsCache = d.briefs||[];
+    renderBriefList();
+    showFresh();
+    initAgent(d);
+  }
+
+  function showFresh(){
+    var b=$('freshBanner'); if(!b) return;
+    var d=briefsCache && briefsCache[0];
+    if(d && d.auto && d.createdAt && (Date.now()-d.createdAt < 36*3600*1000)){
+      $('freshText').textContent='🎉 Nimbo made a fresh brief for you: "'+((d.brief&&d.brief.title)||d.niche)+'"';
+      $('freshOpen').onclick=function(){ render(d); b.style.display='none'; };
+      b.style.display='flex';
+    } else { b.style.display='none'; }
+  }
+
+  // ---------- Generate ----------
+  var msgs=["Nimbo is researching your niche…","Checking what's trending now…","Brainstorming video ideas…","Writing your script…","Polishing title & thumbnail…","Almost there…"];
+  var msgTimer=null;
+
+  document.querySelectorAll('.examples b').forEach(function(b){
+    b.addEventListener('click',function(){ $('niche').value=b.getAttribute('data-ex'); $('niche').focus(); });
+  });
+
+  $('autopilot').addEventListener('change',function(){
+    if(!token){ showGate(); return; }
+    var on=$('autopilot').checked;
+    fetch(FN+'/profile',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify({niche:$('niche').value.trim(),platform:$('platform').value,brand:$('brand').value.trim(),autopilot:on})}).catch(function(){});
+  });
+
+  $('f').addEventListener('submit',function(e){
+    e.preventDefault();
+    if(!token){ showGate(); return; }
+    var v=$('niche').value.trim(); if(!v){ $('niche').focus(); return; }
+    var plat=$('platform').value, brand=$('brand').value.trim();
+
+    // save profile (Nimbo's memory) — fire and forget
+    fetch(FN+'/profile',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({niche:v,platform:plat,brand:brand})}).catch(function(){});
+
+    $('err').style.display='none'; $('result').style.display='none';
+    $('go').disabled=true; $('loading').style.display='block';
+    var i=0; $('loadmsg').textContent=msgs[0];
+    msgTimer=setInterval(function(){ i=(i+1)%msgs.length; $('loadmsg').textContent=msgs[i]; },2600);
+
+    fetch(FN+'/generate-brief',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({niche:v,platform:plat})})
+      .then(function(r){ return r.json().then(function(d){ return {ok:r.ok,status:r.status,d:d}; }); })
+      .then(function(res){
+        clearInterval(msgTimer); $('loading').style.display='none'; $('go').disabled=false;
+        if(res.status===401){ clearToken(); showGate(); return; }
+        if(res.status===402 || (res.d && (res.d.needPlan || res.d.needUpgrade))){ openPaywall(res.d && res.d.error); return; }
+        if(res.d && res.d.usage) updateUsage(res.d.usage);
+        if(!res.ok || !res.d.brief){ $('err').textContent=(res.d && res.d.error) || 'Something went wrong. Try again.'; $('err').style.display='block'; return; }
+        render(res.d);
+        briefsCache.unshift(res.d); renderBriefList();
+      }).catch(function(){
+        clearInterval(msgTimer); $('loading').style.display='none'; $('go').disabled=false;
+        $('err').textContent='Network error. Please try again.'; $('err').style.display='block';
+      });
+  });
+
+  // ---------- Rendering ----------
+  function fmtViews(n){ n=Number(n)||0; if(n>=1e6)return (n/1e6).toFixed(n>=1e7?0:1)+'M'; if(n>=1e3)return (n/1e3).toFixed(n>=1e4?0:1)+'K'; return String(n); }
+
+  function renderTrending(list){
+    var sec=$('trendSec'), box=$('rTrend'); box.innerHTML='';
+    if(!list||!list.length){ sec.style.display='none'; return; }
+    list.forEach(function(v){
+      var a=document.createElement('a'); a.href=v.url; a.target='_blank'; a.rel='noopener';
+      a.appendChild(el('span','tt',v.title||''));
+      a.appendChild(el('span','v',fmtViews(v.views)+' views'+(v.ageDays!=null?' · '+v.ageDays+'d ago':'')));
+      box.appendChild(a);
+    });
+    sec.style.display='block';
+  }
+
+  function render(d){
+    // Capture video info so mountVideo() can find it (set before any DOM work).
+    window.__nimboVideo = d && d.videoUrl
+      ? { url: d.videoUrl, info: d.video || {}, err: null }
+      : (d && d.videoError ? { url: '', info: {}, err: d.videoError } : null);
+    var b=d.brief;
+    $('rNiche').textContent='Content brief for: '+d.niche+(d.platformLabel?'  ·  '+d.platformLabel:'');
+    renderTrending(d.trending||[]);
+    var best=(typeof b.best_pick_index==='number')?b.best_pick_index:0;
+
+    var ideas=$('rIdeas'); ideas.innerHTML='';
+    (b.ideas||[]).forEach(function(idea,idx){
+      var card=el('div','idea'+(idx===best?' best':''));
+      if(idx===best) card.appendChild(el('div','badge','⭐ Best pick'));
+      card.appendChild(el('h3',null,idea.title||''));
+      var hook=el('div','hook'); hook.appendChild(el('span',null,'Hook: ')); hook.appendChild(document.createTextNode(idea.hook||'')); card.appendChild(hook);
+      card.appendChild(el('div','why',idea.why||''));
+      ideas.appendChild(card);
+    });
+
+    $('rScript').textContent=b.script||'';
+    $('rTitle').textContent=b.title||'';
+    var len=(b.title||'').length;
+    $('rTitleLen').textContent=len+' characters'+(len<=60?' · good length ✓':' · a bit long');
+    var ti=$('rThumbImg'), tc=$('rThumbCap'), tf=$('rThumbFrame'), tx=$('rThumbText');
+    tx.textContent=(b.thumbnail_text||'').toString();
+    if(d.thumbUrl){
+      tf.className='thumbframe'+((d.platform && d.platform!=='youtube_long')?' vert':'');
+      ti.onerror=function(){ tf.style.display='none'; if(tc) tc.style.display='none'; };
+      ti.src=d.thumbUrl; tf.style.display='inline-block';
+      if(tc){ tc.style.display='block'; var dl=$('rThumbDl'); if(dl) dl.href=d.thumbUrl; }
+    } else { tf.style.display='none'; if(tc) tc.style.display='none'; }
+    $('rDesc').textContent=b.description||'';
+
+    var tags=$('rTags'); tags.innerHTML='';
+    (b.hashtags||[]).forEach(function(t){ tags.appendChild(el('span','tag','#'+String(t).replace(/^#/,''))); });
+
+    $('copyScript').onclick=function(){copy(b.script||'',this);};
+    $('copyTags').onclick=function(){copy((b.hashtags||[]).map(function(t){return '#'+String(t).replace(/^#/,'');}).join(' '),this);};
+
+    $('result').style.display='block';
+    mountVideo($('result'));
+    $('result').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  // Drop the video player in above everything else in the result card.
+  function mountVideo(host){
+    var v = window.__nimboVideo;
+    if(!host || !v) return;
+    // Remove any existing player first (re-render case)
+    var old = host.querySelector('.vidwrap, .vidnote');
+    if(old) old.parentNode.removeChild(old);
+    if(v.err === 'notready'){
+      var note = el('div','vidnote','🎥 The written brief is ready. Automatic video building is not switched on for this server yet.');
+      host.insertBefore(note, host.firstChild);
+      return;
+    }
+    if(v.err){
+      var note = el('div','vidnote','🎥 Could not finish the video this time: ' + v.err + '. The script below is ready to shoot.');
+      host.insertBefore(note, host.firstChild);
+      return;
+    }
+    if(!v.url) return;
+    var wrap = el('div','vidwrap','');
+    var vid = document.createElement('video');
+    vid.src = v.url; vid.controls = true; vid.playsInline = true; vid.preload = 'metadata';
+    wrap.appendChild(vid);
+    var bar = el('div','vidbar','');
+    bar.appendChild(el('b','','🎥 Your video'));
+    var bits = [];
+    if(v.info.seconds) bits.push(v.info.seconds + 's');
+    if(v.info.scenes) bits.push(v.info.scenes + ' scenes');
+    if(v.info.bytes) bits.push(Math.round(v.info.bytes/1024/1024*10)/10 + ' MB');
+    bar.appendChild(el('span','', bits.join('  \u00b7  ')));
+    var dl = document.createElement('a');
+    dl.href = v.url; dl.download = 'nimbo-video.mp4'; dl.textContent = 'Download';
+    bar.appendChild(dl);
+    wrap.appendChild(bar);
+    host.insertBefore(wrap, host.firstChild);
+  }
+
+  function renderBriefList(){
+    var box=$('briefList'), area=$('briefsArea'); box.innerHTML='';
+    if(!briefsCache.length){ area.style.display='none'; return; }
+    briefsCache.slice(0,20).forEach(function(d){
+      var btn=document.createElement('button');
+      btn.appendChild(el('span','bt',(d.brief&&d.brief.title)||d.niche||'Brief'));
+      var when=d.createdAt?new Date(d.createdAt):null;
+      btn.appendChild(el('span','bm',(d.auto?'☁️ Nimbo · ':'')+(d.niche||'')+(when?' · '+when.toLocaleDateString():'')));
+      btn.onclick=function(){ render(d); };
+      box.appendChild(btn);
+    });
+    area.style.display='block';
+  }
+
+  function copy(text,btn){
+    var old=btn.textContent;
+    try{ navigator.clipboard.writeText(text).then(function(){btn.textContent='Copied ✓';setTimeout(function(){btn.textContent=old;},1400);})
+      .catch(function(){btn.textContent='Copy failed';setTimeout(function(){btn.textContent=old;},1400);}); }
+    catch(e){ btn.textContent='Copy failed'; setTimeout(function(){btn.textContent=old;},1400); }
+  }
+
+  // ---------- Boot ----------
+  // ---------- ONE-TIME SETUP WIZARD ----------
+  var myProfile = null, wizStep = 1, wizMax = 6, wizSel = {};
+
+  function wizShow(n){
+    wizStep = Math.max(1, Math.min(wizMax, n));
+    var steps = document.querySelectorAll('.wizstep');
+    for (var i=0;i<steps.length;i++){
+      steps[i].className = 'wizstep' + (Number(steps[i].getAttribute('data-step')) === wizStep ? ' on' : '');
+    }
+    $('wizBar').style.width = Math.round(wizStep / wizMax * 100) + '%';
+    $('wizCount').textContent = 'Step ' + wizStep + ' of ' + wizMax;
+    $('wizNext').textContent = (wizStep === wizMax) ? 'Finish setup' : 'Next';
+    $('wizBack').style.visibility = (wizStep === 1) ? 'hidden' : 'visible';
+    $('wizErr').style.display = 'none';
+    try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e) {}
+  }
+
+  document.addEventListener('click', function(ev){
+    var b = ev.target && ev.target.closest ? ev.target.closest('.chipb') : null;
+    if(!b) return;
+    var wrap = b.parentNode, g = wrap.getAttribute('data-group'), multi = wrap.getAttribute('data-multi');
+    if(multi){ b.classList.toggle('sel'); }
+    else { var all = wrap.querySelectorAll('.chipb'); for(var i=0;i<all.length;i++) all[i].classList.remove('sel'); b.classList.add('sel'); }
+    var sel = wrap.querySelectorAll('.chipb.sel'), out = [];
+    for(var j=0;j<sel.length;j++) out.push(sel[j].getAttribute('data-v'));
+    wizSel[g] = out;
+    if(g === 'videoTool'){ $('w_keyWrap').style.display = (out[0] && out[0] !== 'free_faceless') ? 'block' : 'none'; }
+  });
+
+  function wOne(g, dflt){ return (wizSel[g] && wizSel[g][0]) || dflt; }
+  function wMany(g){ return wizSel[g] || []; }
+  function wVal(id){ var e = $(id); return e ? String(e.value || '').trim() : ''; }
+
+  function wizCollect(){
+    var perms = wMany('perms'), po = {};
+    ['ideas','video','schedule','post','comments'].forEach(function(k){ po[k] = perms.indexOf(k) >= 0; });
+    return {
+      creatorName: wVal('w_creatorName'), niche: wVal('w_niche'),
+      subTopics: wVal('w_subTopics').split(',').map(function(x){ return x.trim(); }).filter(Boolean),
+      audience: wVal('w_audience'), language: wVal('w_language'), country: wVal('w_country'),
+      platforms: wMany('platforms'), platform: wVal('w_platform'),
+      links: { youtube: wVal('w_ytLink'), instagram: wVal('w_igLink'), tiktok: wVal('w_ttLink') },
+      size: wVal('w_size'),
+      tone: wMany('tone'), onCamera: wOne('onCamera','faceless'), videoStyle: wVal('w_videoStyle'),
+      brand: wVal('w_brand'), avoid: wVal('w_avoid'), inspirations: wVal('w_inspirations'),
+      frequency: wVal('w_frequency'), postDays: wMany('postDays'), postTime: wVal('w_postTime'),
+      videoTool: wOne('videoTool','free_faceless'), videoToolKey: wVal('w_videoToolKey'),
+      voicePref: wVal('w_voicePref'), captionStyle: wVal('w_captionStyle'), music: wVal('w_music'),
+      automation: wOne('automation','approve_first'), permissions: po,
+      autopilot: wOne('autopilot','off') === 'on',
+      onboarded: true
+    };
+  }
+
+  function wizPrefill(p){
+    wizSel = {};
+    if(!p) return;
+    function set(id, v){ var e = $(id); if(e && v) e.value = v; }
+    set('w_creatorName', p.creatorName); set('w_niche', p.niche);
+    set('w_subTopics', (p.subTopics||[]).join(', ')); set('w_audience', p.audience);
+    set('w_language', p.language); set('w_country', p.country); set('w_platform', p.platform);
+    if(p.links){ set('w_ytLink', p.links.youtube); set('w_igLink', p.links.instagram); set('w_ttLink', p.links.tiktok); }
+    set('w_size', p.size); set('w_videoStyle', p.videoStyle); set('w_brand', p.brand);
+    set('w_avoid', p.avoid); set('w_inspirations', p.inspirations); set('w_frequency', p.frequency);
+    set('w_postTime', p.postTime); set('w_videoToolKey', p.videoToolKey); set('w_voicePref', p.voicePref);
+    set('w_captionStyle', p.captionStyle); set('w_music', p.music);
+    var perms = [], pp = p.permissions || {};
+    Object.keys(pp).forEach(function(k){ if(pp[k]) perms.push(k); });
+    var groups = {
+      platforms: p.platforms || [], tone: p.tone || [], postDays: p.postDays || [],
+      onCamera: [p.onCamera], videoTool: [p.videoTool], automation: [p.automation],
+      autopilot: [p.autopilot ? 'on' : 'off'], perms: perms
+    };
+    Object.keys(groups).forEach(function(g){
+      var wrap = document.querySelector('[data-group="' + g + '"]');
+      if(!wrap) return;
+      var vals = (groups[g] || []).filter(Boolean);
+      var all = wrap.querySelectorAll('.chipb');
+      for(var i=0;i<all.length;i++){
+        if(vals.indexOf(all[i].getAttribute('data-v')) >= 0) all[i].classList.add('sel');
+        else all[i].classList.remove('sel');
+      }
+      wizSel[g] = vals;
+    });
+    if(p.videoTool && p.videoTool !== 'free_faceless') $('w_keyWrap').style.display = 'block';
+  }
+
+  function openWizard(p){
+    $('gate').style.display = 'none';
+    $('appArea').style.display = 'none';
+    $('wiz').style.display = 'block';
+    wizPrefill(p);
+    wizShow(1);
+  }
+
+  $('wizBack').addEventListener('click', function(){ wizShow(wizStep - 1); });
+  $('wizNext').addEventListener('click', function(){
+    if(wizStep === 1 && !wVal('w_niche')){
+      $('wizErr').textContent = 'Please tell Nimbo your niche - it needs this to work.';
+      $('wizErr').style.display = 'block'; return;
+    }
+    if(wizStep < wizMax){ wizShow(wizStep + 1); return; }
+    if(!token){ showGate(); return; }
+    var body = wizCollect();
+    $('wizNext').disabled = true; $('wizNext').textContent = 'Saving...';
+    fetch(FN + '/profile', { method:'POST', headers:{ 'Authorization':'Bearer ' + token, 'Content-Type':'application/json' }, body: JSON.stringify(body) })
+      .then(function(r){ return r.json(); })
+      .then(function(){ $('wizNext').disabled = false; $('wizNext').textContent = 'Finish setup'; $('wiz').style.display = 'none'; loadSession(); })
+      .catch(function(){ $('wizNext').disabled = false; $('wizNext').textContent = 'Finish setup'; $('wizErr').textContent = 'Could not save. Please try again.'; $('wizErr').style.display = 'block'; });
+  });
+
+  var esb = $('editSetup');
+  if(esb) esb.addEventListener('click', function(){ openWizard(myProfile); });
+
+  // ---------- PAYWALL ----------
+  var PLANS = null, DISCOUNT = 0.30;
+
+  function openPaywall(msg){
+    $('gate').style.display = 'none';
+    var wz = $('wiz'); if(wz) wz.style.display = 'none';
+    $('appArea').style.display = 'none';
+    $('paywall').style.display = 'block';
+    if(msg) $('payNote').textContent = msg;
+    renderPlans();
+    try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e){}
+  }
+
+  function renderPlans(){
+    var box = $('planCards'); if(!box) return;
+    box.innerHTML = '';
+    var order = ['starter','creator','pro'];
+    var cur = myProfile && myProfile.plan;
+    $('foundBadge').textContent = 'Founding creator - ' + Math.round(DISCOUNT*100) + '% off for life';
+    order.forEach(function(k){
+      var p = PLANS && PLANS[k];
+      if(!p) return;
+      var disc = Math.round(p.price * (1 - DISCOUNT));
+      var card = document.createElement('div');
+      card.className = 'plan' + (k === 'creator' ? ' best' : '');
+      var h = '';
+      if(k === 'creator') h += '<div class="tag2">Most popular</div>';
+      h += '<h3>' + p.name + (cur === k ? '<span class="curplan">current</span>' : '') + '</h3>';
+      h += '<div class="was">$' + p.price + '/mo</div>';
+      h += '<div class="now">$' + disc + '</div><div class="per">per month, locked for life</div>';
+      h += '<ul>'
+         + '<li>' + p.videos + ' videos a month (' + p.blurb + ')</li>'
+         + '<li>Live trend research + scripts</li>'
+         + '<li>Titles, thumbnails, captions, hashtags</li>'
+         + '<li>All platforms: Reels, TikTok, Shorts, YouTube</li>'
+         + '<li>Daily autopilot</li>'
+         + (k !== 'starter' ? '<li>Priority generation</li>' : '')
+         + (k === 'pro' ? '<li>Team / agency use</li>' : '')
+         + '</ul>';
+      card.innerHTML = h;
+      var btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'btn';
+      btn.textContent = (cur === k) ? 'Keep ' + p.name : 'Choose ' + p.name;
+      btn.addEventListener('click', function(){ choosePlan(k, btn); });
+      card.appendChild(btn);
+      box.appendChild(card);
+    });
+  }
+
+  function choosePlan(plan, btn){
+    if(!token){ showGate(); return; }
+    var old = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Opening checkout...';
+    fetch(FN + '/checkout', { method:'POST', headers:{ 'Authorization':'Bearer ' + token, 'Content-Type':'application/json' }, body: JSON.stringify({ plan: plan }) })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d && d.payment_link){ window.location.href = d.payment_link; return; }
+        btn.disabled = false; btn.textContent = old;
+        $('payNote').textContent = (d && d.error) || 'Could not open checkout. Please try again.';
+      })
+      .catch(function(){ btn.disabled = false; btn.textContent = old; $('payNote').textContent = 'Network error. Please try again.'; });
+  }
+
+  var cpb = $('changePlan');
+  if(cpb) cpb.addEventListener('click', function(){ openPaywall(); });
+
+
+  // ======================= THE AGENT: chat, channels, ledger =======================
+  var convLoaded = false, pollTimer = null;
+
+  function bubble(text, cls){
+    var b = el('div','bub ' + (cls||'nb'), '');
+    b.textContent = text;
+    $('chat').appendChild(b);
+    $('chat').scrollTop = $('chat').scrollHeight;
+    return b;
+  }
+  function typingBubble(){
+    var b = el('div','bub nb','');
+    b.innerHTML = '<span class="dots"><span></span><span></span><span></span></span>';
+    $('chat').appendChild(b);
+    $('chat').scrollTop = $('chat').scrollHeight;
+    return b;
+  }
+  function renderConv(conv){
+    var c = $('chat'); if(!c) return;
+    c.innerHTML = '';
+    if(!conv || !conv.length){
+      var e = el('div','chatempty','Nimbo is ready. Type below, or tap a suggestion.');
+      c.appendChild(e); return;
+    }
+    conv.forEach(function(m){ bubble(m.text || '', m.role === 'nimbo' ? 'nb' : 'me'); });
+  }
+  function timeAgo(ts){
+    var m = Math.max(1, Math.round((Date.now() - (ts||0))/60000));
+    if(m < 60) return m + 'm ago';
+    var h = Math.round(m/60);
+    if(h < 24) return h + 'h ago';
+    return Math.round(h/24) + 'd ago';
+  }
+  var KIND_ICON = { content:'🎬', research:'🔎', setting:'⚙️', autopilot:'🤖', connect:'🔗', inbox:'📩', info:'•' };
+  function renderLedger(events){
+    var list = $('ledgerList'), none = $('ledgerNone');
+    if(!list) return;
+    list.innerHTML = '';
+    if(!events || !events.length){ none.style.display='block'; return; }
+    none.style.display='none';
+    events.slice(0,8).forEach(function(e){
+      var li = document.createElement('li');
+      li.appendChild(el('span','', (KIND_ICON[e.kind] || '•')));
+      li.appendChild(el('span','', e.text || ''));
+      li.appendChild(el('em','', timeAgo(e.at)));
+      list.appendChild(li);
+    });
+  }
+
+  function loadConv(){
+    if(!token) return;
+    fetch(FN + '/ask', { headers:{ 'Authorization':'Bearer ' + token } })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        if(!d) return;
+        convLoaded = true;
+        renderConv(d.conv);
+        renderLedger(d.events);
+      })
+      .catch(function(){});
+  }
+
+  function setAgentState(txt){ var p = $('agentState'); if(p) p.textContent = txt; }
+
+  function ask(text){
+    if(!text || !token) return;
+    var input = $('askInput');
+    if(input) input.value = '';
+    var empty = $('chat').querySelector('.chatempty'); if(empty) empty.remove();
+    bubble(text, 'me');
+    var typing = typingBubble();
+    setAgentState('Nimbo is working...');
+    $('askSend').disabled = true;
+
+    fetch(FN + '/ask', {
+      method:'POST',
+      headers:{ 'Authorization':'Bearer ' + token, 'Content-Type':'application/json' },
+      body: JSON.stringify({ text: text })
+    })
+    .then(function(r){ return r.json().then(function(d){ return { status:r.status, d:d }; }); })
+    .then(function(res){
+      if(res.status === 401){ typing.remove(); clearToken(); showGate(); return; }
+      if(!res.d || !res.d.taskId){
+        typing.remove(); $('askSend').disabled = false; setAgentState('Agent ready');
+        bubble((res.d && res.d.error) || 'Could not reach Nimbo. Please try again.', 'err');
+        return;
+      }
+      pollTask(res.d.taskId, typing, 0);
+    })
+    .catch(function(){
+      typing.remove(); $('askSend').disabled = false; setAgentState('Agent ready');
+      bubble('Network problem. Please try again.', 'err');
+    });
+  }
+
+  // Nimbo works in the background (research + writing takes a while), so we poll for the answer.
+  function pollTask(taskId, typing, tries){
+    if(tries > 60){
+      typing.remove(); $('askSend').disabled = false; setAgentState('Agent ready');
+      bubble('This is taking longer than usual. Refresh the page - it has probably finished.', 'err');
+      return;
+    }
+    pollTimer = setTimeout(function(){
+      fetch(FN + '/ask?taskId=' + encodeURIComponent(taskId), { headers:{ 'Authorization':'Bearer ' + token } })
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(d){
+          if(!d){ pollTask(taskId, typing, tries + 1); return; }
+          if(d.status === 'done'){
+            typing.remove(); $('askSend').disabled = false; setAgentState('Agent ready');
+            bubble(d.reply || 'Done.', 'nb');
+            refreshAfterWork(d.intent);
+            return;
+          }
+          if(d.status === 'error'){
+            typing.remove(); $('askSend').disabled = false; setAgentState('Agent ready');
+            bubble(d.error || 'Something went wrong. Please ask again.', 'err');
+            return;
+          }
+          pollTask(taskId, typing, tries + 1);
+        })
+        .catch(function(){ pollTask(taskId, typing, tries + 1); });
+    }, 2000);
+  }
+
+  // After Nimbo acts, pull the fresh state (new brief, new quota, changed settings).
+  function refreshAfterWork(intent){
+    fetch(FN + '/profile', { headers:{ 'Authorization':'Bearer ' + token } })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        if(!d || !d.user) return;
+        myProfile = d.profile || myProfile;
+        briefsCache = d.briefs || briefsCache;
+        updateUsage(d.usage);
+        renderBriefList();
+        renderLedger(d.events);
+        if(myProfile){
+          if(myProfile.niche) $('niche').value = myProfile.niche;
+          if(myProfile.platform) $('platform').value = myProfile.platform;
+          $('autopilot').checked = !!myProfile.autopilot;
+        }
+        if(intent === 'make_content' && briefsCache && briefsCache[0]) render(briefsCache[0]);
+      })
+      .catch(function(){});
+  }
+
+  // ---------- Telegram pairing ----------
+  function renderTelegram(d){
+    var act = $('tgAction'), sub = $('tgSub'), steps = $('tgSteps');
+    if(!act) return;
+    act.innerHTML = ''; steps.innerHTML = '';
+
+    // Already paired - nothing more to do, ever.
+    if(d && d.connected){
+      sub.textContent = 'Connected' + (d.username ? ' as @' + d.username : '') + '. Text or send a voice note from your phone any time.';
+      var ok = el('span','okdot','\u2705 Connected  ');
+      var dis = el('button','signout','Disconnect');
+      dis.onclick = function(){
+        fetch(FN + '/connect', { method:'POST', headers:{ 'Authorization':'Bearer ' + token, 'Content-Type':'application/json' }, body:'{"disconnect":true}' })
+          .then(function(){ loadTelegram(); });
+      };
+      act.appendChild(ok); act.appendChild(dis);
+      return;
+    }
+
+    // The bot is not live yet - say that plainly instead of showing a code with nowhere to go.
+    if(!d || !d.bot){
+      sub.textContent = 'Soon you will be able to text or send a voice note to Nimbo from your phone, and get the work back there.';
+      var soon = el('div','soon','\uD83D\uDD27 Being set up - this turns on in the next update.');
+      steps.appendChild(soon);
+      return;
+    }
+
+    // Bot is live: one tap, one time.
+    sub.textContent = 'Link your Telegram once, then just message Nimbo from your phone.';
+    var ol = document.createElement('ol');
+    [ 'Tap the button - it opens Nimbo in Telegram.',
+      'Press Start. You are connected.',
+      'Now message or send a voice note any time.' ].forEach(function(t){
+      var li = document.createElement('li'); li.textContent = t; ol.appendChild(li);
+    });
+    steps.appendChild(ol);
+    steps.appendChild(el('span','once','\u2705 One time only - you will never need a code again'));
+    if(d.code){
+      steps.appendChild(el('div','manual','Rather do it by hand? Open @' + d.bot + ' in Telegram and send: ' + d.code + ' (this code works for the next 30 minutes)'));
+    }
+
+    var a = document.createElement('a');
+    a.className = 'tgbtn'; a.href = d.link || ('https://t.me/' + d.bot); a.target = '_blank'; a.rel = 'noopener';
+    a.textContent = 'Connect Telegram';
+    act.appendChild(a);
+  }
+  function loadTelegram(){
+    if(!token) return;
+    fetch(FN + '/connect', { headers:{ 'Authorization':'Bearer ' + token } })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){ if(d) renderTelegram(d); })
+      .catch(function(){});
+  }
+
+  function initAgent(d){
+    renderConv((d && d.conv) || null);
+    renderLedger((d && d.events) || []);
+    loadConv();
+    loadTelegram();
+    setAgentState((d && d.profile && d.profile.autopilot) ? 'Autopilot ON' : 'Agent ready');
+  }
+
+  (function wireAgent(){
+    var send = $('askSend'), input = $('askInput');
+    if(send) send.addEventListener('click', function(){ ask(($('askInput').value || '').trim()); });
+    if(input) input.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); ask((input.value || '').trim()); } });
+    document.querySelectorAll('#askChips b').forEach(function(b){
+      b.addEventListener('click', function(){ ask(b.getAttribute('data-ask')); });
+    });
+  })();
+
+  function afterCheckout(){
+    if(!token){ showGate(); return; }
+    $('paywall').style.display = 'block';
+    $('payNote').textContent = 'Confirming your payment...';
+    fetch(FN + '/subscribe', { method:'POST', headers:{ 'Authorization':'Bearer ' + token, 'Content-Type':'application/json' }, body: '{}' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        try { history.replaceState({}, '', location.pathname); } catch(e){}
+        if(d && d.active){ $('paywall').style.display = 'none'; loadSession(); }
+        else { $('payNote').textContent = 'Payment not confirmed yet. If you just paid, wait a few seconds and refresh this page.'; }
+      })
+      .catch(function(){ $('payNote').textContent = 'Could not confirm the payment. Please refresh.'; });
+  }
+
+  if(token){
+    if(location.search.indexOf('checkout=done') >= 0) { afterCheckout(); }
+    else { loadSession(); }
+  } else { showGate(); }
+</script>
+<script src="https://accounts.google.com/gsi/client" async="" defer="" onload="onGisLoad()"></script>
+
+
+<script async="" src="/.netlify/scripts/hud?variant=public" data-nf-variant="public" data-netlify-site-id="a94f10c3-a179-49c7-83f6-715c07a3b4d9" data-app-host="app.netlify.com"></script>
+<iframe id="nl-badge-frame" title="Powered by Netlify" srcdoc="&lt;!doctype html&gt;&lt;html class=&quot;nl-narrow&quot;&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;color-scheme&quot; content=&quot;dark&quot;&gt;&lt;style&gt;
+    :root{--nl-vw:0px;--nl-vh:0px}
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:transparent;overflow:hidden}
+    body{display:flex;align-items:flex-end;justify-content:flex-end;height:100vh;
+      padding:8px 18px 18px 8px;
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#f4f9f9;-webkit-font-smoothing:antialiased}
+    .nl-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:10px;width:max-content;max-width:calc(var(--nl-vw,100vw) - 26px)}
+    button{font-family:inherit;cursor:pointer}
+    :focus-visible{outline:2px solid #32e6e2;outline-offset:2px;border-radius:6px}
+    .nl-icon-btn{position:relative;flex:none;width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid transparent;background:transparent;color:#d5e3e6;transition:background .15s ease,color .15s ease}
+    .nl-icon-btn:hover{background:rgba(255,255,255,0.08);color:#f4f9f9}
+    .nl-tap::after{content:&quot;&quot;;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+      width:max(100%,44px);height:max(100%,44px)}
+    @keyframes nl-rise{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+    @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition:none!important}}
+  
+      .nl-card{position:relative;display:none;width:min(340px,calc(var(--nl-vw,100vw) - 26px));max-height:calc(var(--nl-vh,100vh) - 84px);overflow-y:auto;background:linear-gradient(180deg,#132832 0%,#0e1e25 100%);border:1px solid rgba(255,255,255,0.09);border-radius:18px;padding:18px;transform-origin:bottom right;animation:nl-rise .3s cubic-bezier(.34,1.4,.4,1) both}
+      .nl-card.open{display:block}
+      .nl-card-close{position:absolute;top:10px;right:10px}
+      .nl-card h2{margin:0;padding-right:30px;font-size:16px;font-weight:750;letter-spacing:-0.015em;line-height:1.35}
+      .nl-card h2 em{font-style:normal;background:linear-gradient(90deg,#32e6e2,#4d7cfe,#9a6bff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+      .nl-card p{margin:8px 0 0;font-size:12.5px;color:#d5e3e6}
+      .nl-prompt{position:relative;margin-top:14px;background:#10222b;border:1px solid rgba(255,255,255,0.09);border-radius:14px;padding:10px 12px;transition:border-color .15s ease,box-shadow .15s ease}
+      .nl-prompt:focus-within{border-color:#05bdba;box-shadow:0 0 0 3px rgba(5,189,186,0.18)}
+      .nl-prompt textarea{display:block;width:100%;height:38px;resize:none;border:0;outline:none;background:transparent;color:#f4f9f9;font:inherit;font-size:13px;line-height:19px;padding:0 28px 0 0}
+      .nl-prompt textarea::placeholder{color:#a9bdc2}
+      .nl-send{position:absolute;right:9px;bottom:9px;width:24px;height:24px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:50%;background:#05bdba;color:#02191b;transition:background .15s ease}
+      .nl-send:hover{background:#32e6e2}
+      @media (pointer: coarse){
+        .nl-prompt textarea{font-size:16px;line-height:21px;height:42px}
+      }
+      .nl-or{display:flex;align-items:center;gap:10px;margin:12px 0;font-size:10.5px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#a9bdc2}
+      .nl-or::before,.nl-or::after{content:&quot;&quot;;flex:1;height:1px;background:rgba(255,255,255,0.09)}
+      .nl-drop{display:flex;align-items:center;justify-content:space-between;gap:6px;text-decoration:none;background:#1b3a45;border:1px solid rgba(255,255,255,0.09);border-radius:10px;padding:10px 12px;font-size:13px;font-weight:600;color:#cfe0e3;transition:background .15s ease,color .15s ease,border-color .15s ease}
+      .nl-drop:hover{background:#224753;color:#f4f9f9;border-color:rgba(50,230,226,0.3)}
+      .nl-drop .nl-arrow{transition:transform .18s cubic-bezier(.34,1.4,.4,1)}
+      .nl-drop:hover .nl-arrow{transform:translateX(3px)}
+      .nl-badge{display:flex;align-items:center;gap:9px;white-space:nowrap;border:1px solid rgba(255,255,255,0.09);background:linear-gradient(180deg,#142b34,#0e1e25);color:#f4f9f9;border-radius:999px;padding:9px 14px 9px 11px;font-size:13px;font-weight:600;letter-spacing:0.01em;transition:border-color .2s ease}
+      .nl-badge:hover{border-color:rgba(50,230,226,0.26)}
+      .nl-hide{display:block;width:100%;margin-top:10px;border:0;background:transparent;color:#a9bdc2;font-size:11.5px;font-weight:600;padding:4px;border-radius:8px;transition:color .15s ease}
+      .nl-hide:hover{color:#d5e3e6;text-decoration:underline}
+      .nl-badge-label{color:#d5e3e6;font-weight:500}
+      .nl-badge-brand{font-weight:750}
+    &lt;/style&gt;&lt;/head&gt;&lt;body&gt;
+      &lt;div class=&quot;nl-wrap&quot;&gt;
+        &lt;section class=&quot;nl-card&quot; id=&quot;nl-card&quot; aria-label=&quot;Build your own site on Netlify&quot;&gt;
+          &lt;button type=&quot;button&quot; class=&quot;nl-icon-btn nl-tap nl-card-close&quot; id=&quot;nl-card-close&quot; aria-label=&quot;Close&quot;&gt;&lt;svg width=&quot;14&quot; height=&quot;14&quot; viewBox=&quot;0 0 16 16&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.9&quot; stroke-linecap=&quot;round&quot; aria-hidden=&quot;true&quot;&gt;&lt;path d=&quot;M4.5 4.5 11.5 11.5M11.5 4.5 4.5 11.5&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
+          &lt;h2&gt;&lt;em&gt;Build your own site with Netlify&lt;/em&gt;&lt;/h2&gt;
+          &lt;p&gt;Describe what you want, and an AI agent designs, builds and deploys it in minutes.&lt;/p&gt;
+          &lt;form class=&quot;nl-prompt&quot; action=&quot;https://app.netlify.com/start&quot; method=&quot;get&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;
+            &lt;textarea name=&quot;prompt&quot; rows=&quot;2&quot; required maxlength=&quot;300&quot; autocomplete=&quot;off&quot;
+                      enterkeyhint=&quot;go&quot;
+                      placeholder=&quot;A shop for my handmade surfboards&amp;hellip;&quot;
+                      aria-label=&quot;Describe the site you want to build&quot;&gt;&lt;/textarea&gt;
+            &lt;button type=&quot;submit&quot; class=&quot;nl-send nl-tap&quot; aria-label=&quot;Build this site&quot;&gt;&lt;svg width=&quot;13&quot; height=&quot;13&quot; viewBox=&quot;0 0 16 16&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot;&gt;&lt;path d=&quot;M8 12.75v-9.5M3.9 7.35 8 3.25l4.1 4.1&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
+            &lt;input type=&quot;hidden&quot; name=&quot;utm_source&quot; value=&quot;netlify_badge&quot;&gt;
+            &lt;input type=&quot;hidden&quot; name=&quot;utm_campaign&quot; value=&quot;loops&quot;&gt;
+            &lt;input type=&quot;hidden&quot; name=&quot;utm_medium&quot; value=&quot;owned&quot;&gt;
+            &lt;input type=&quot;hidden&quot; name=&quot;utm_content&quot; value=&quot;prompt&quot;&gt;
+            &lt;input type=&quot;hidden&quot; name=&quot;utm_id&quot; value=&quot;a94f10c3-a179-49c7-83f6-715c07a3b4d9&quot;&gt;
+            
+          &lt;/form&gt;
+          &lt;div class=&quot;nl-or&quot;&gt;&lt;span&gt;or&lt;/span&gt;&lt;/div&gt;
+          &lt;a class=&quot;nl-drop&quot; href=&quot;https://app.netlify.com/drop?utm_source=netlify_badge&amp;utm_campaign=loops&amp;utm_medium=owned&amp;utm_content=drop&amp;utm_id=a94f10c3-a179-49c7-83f6-715c07a3b4d9&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;
+            &lt;span&gt;Drop a site you already have&lt;/span&gt;&lt;span class=&quot;nl-arrow&quot; aria-hidden=&quot;true&quot;&gt;&amp;rarr;&lt;/span&gt;
+          &lt;/a&gt;
+          &lt;button type=&quot;button&quot; class=&quot;nl-hide&quot; id=&quot;nl-hide&quot;&gt;Hide this badge&lt;/button&gt;
+        &lt;/section&gt;
+        &lt;button type=&quot;button&quot; class=&quot;nl-badge&quot; id=&quot;nl-badge&quot; aria-expanded=&quot;false&quot; aria-controls=&quot;nl-card&quot;
+                aria-label=&quot;Powered by Netlify — build your own site&quot;&gt;
+          &lt;svg width=&quot;18&quot; height=&quot;18&quot; viewBox=&quot;0 0 32 32&quot; fill=&quot;none&quot; aria-hidden=&quot;true&quot;&gt;
+    &lt;path fill=&quot;#fff&quot; d=&quot;M17.9922 18.3225H14.005L13.6746 17.9921V14.005L14.005 13.6746H17.9922L18.3226 14.005V17.9921L17.9922 18.3225Z&quot;/&gt;
+    &lt;g fill=&quot;#05BDBA&quot;&gt;
+      &lt;path d=&quot;M9.6958 24.3311H9.35705L7.6661 22.6401V22.3041L10.2511 19.7164L12.042 19.7191L12.2808 19.9552V21.7461L9.6958 24.3311Z&quot;/&gt;
+      &lt;path d=&quot;M7.6661 9.69576V9.35701L9.35705 7.66606H9.6958L12.2808 10.2511V12.0392L12.042 12.2808H10.2511L7.6661 9.69576Z&quot;/&gt;
+      &lt;path d=&quot;M10.0457 17.4369H0.205466L0 17.2314V14.7658L0.205466 14.5603H10.0457L10.2511 14.7658V17.2314L10.0457 17.4369Z&quot;/&gt;
+      &lt;path d=&quot;M31.7945 17.4369H21.9544L21.7489 17.2314V14.7658L21.9544 14.5603H31.7945L32 14.7658V17.2314L31.7945 17.4369Z&quot;/&gt;
+      &lt;path d=&quot;M14.5631 10.0456V2.66547L14.7686 2.46001H17.2343L17.4396 2.66547V10.0456L17.2343 10.2511H14.7686L14.5631 10.0456Z&quot;/&gt;
+      &lt;path d=&quot;M14.5631 29.3316V21.9515L14.7686 21.746H17.2343L17.4396 21.9515V29.3316L17.2343 29.5371H14.7686L14.5631 29.3316Z&quot;/&gt;
+    &lt;/g&gt;&lt;/svg&gt;
+          &lt;span&gt;&lt;span class=&quot;nl-badge-label&quot;&gt;Powered by&lt;/span&gt; &lt;span class=&quot;nl-badge-brand&quot;&gt;Netlify&lt;/span&gt;&lt;/span&gt;
+        &lt;/button&gt;
+      &lt;/div&gt;
+      &lt;script&gt;
+        
+    function nlSend(){
+      var wrap=document.querySelector('.nl-wrap'),boxes=[];
+      for(var i=0;i&lt;wrap.children.length;i++){
+        var c=wrap.children[i];
+        if(!c.offsetWidth||!c.offsetHeight)continue;
+        boxes.push({x:c.offsetLeft-wrap.offsetLeft+8,
+                    y:c.offsetTop-wrap.offsetTop+8,
+                    w:c.offsetWidth,h:c.offsetHeight});
+      }
+      parent.postMessage({nlHud:'resize',
+        width:wrap.offsetWidth+26,
+        height:wrap.offsetHeight+26,
+        boxes:boxes},'*');
+    }
+    function nlSendSoon(){requestAnimationFrame(nlSend);}
+    window.addEventListener('load',nlSend);
+    window.addEventListener('message',function(e){
+      if(e.source!==parent||!e.data||e.data.nlHud!=='viewport')return;
+      var s=document.documentElement.style;
+      s.setProperty('--nl-vw',e.data.w+'px');
+      s.setProperty('--nl-vh',e.data.h+'px');
+      document.documentElement.classList.toggle('nl-narrow',e.data.w&lt;600);
+      nlSendSoon();
+    });
+    var nlCoarse=window.matchMedia('(pointer: coarse)').matches;
+    function nlSubmit(form){
+      if(form.requestSubmit)return form.requestSubmit();
+      if(form.checkValidity&amp;&amp;!form.checkValidity())
+        return form.reportValidity&amp;&amp;form.reportValidity();
+      form.submit();
+    }
+  
+        var badge=document.getElementById('nl-badge'),card=document.getElementById('nl-card'),
+            box=card.querySelector('textarea');
+        function setOpen(open){
+          card.classList.toggle('open',open);
+          badge.setAttribute('aria-expanded',open?'true':'false');
+          nlSendSoon();
+          if(open&amp;&amp;!nlCoarse)box.focus();
+        }
+        box.addEventListener('keydown',function(e){
+          if(e.key==='Enter'&amp;&amp;!e.shiftKey){e.preventDefault();nlSubmit(box.form);}
+        });
+        badge.addEventListener('click',function(){setOpen(!card.classList.contains('open'));});
+        document.getElementById('nl-card-close').addEventListener('click',function(){setOpen(false);badge.focus();});
+        document.addEventListener('keydown',function(e){
+          if(e.key==='Escape'&amp;&amp;card.classList.contains('open')){setOpen(false);badge.focus();}
+        });
+        document.getElementById('nl-hide').addEventListener('click',function(){
+          parent.postMessage({nlHud:'state',value:'hidden'},'*');
+        });
+      &lt;/script&gt;
+    &lt;/body&gt;&lt;/html&gt;" style="position: fixed; bottom: 0px; right: 0px; border: 0px; margin: 0px; padding: 0px; background: transparent; color-scheme: dark; z-index: 2147483645; width: 0px; height: 0px; clip-path: path(&quot;M 0 0 H -13 V -13 H 0 Z&quot;);" data-nl-ready="1"></iframe></body></html>
