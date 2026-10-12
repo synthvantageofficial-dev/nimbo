@@ -4,8 +4,39 @@ const S = require("./store");
 const { handleMessage } = require("./agent");
 const { deliver } = require("./channels");
 
+// Render a free faceless video from a script queued by make-video.js.
+async function runVideoTask(task) {
+  await S.updateTask(task.id, { status: "working" });
+  try {
+    const { makeVideo } = require("./video");
+    const fs = require("fs");
+    const crypto = require("crypto");
+    const res = await makeVideo({
+      brief: { script: task.script },
+      platform: task.platform || "short",
+      voice: task.voice || "en-US-AriaNeural",
+      onStep: function (step) {
+        S.updateTask(task.id, { step: step }).catch(function () {});
+      }
+    });
+    const id = crypto.randomBytes(16).toString("hex");
+    await S.putBinary("video/" + id, fs.readFileSync(res.file));
+    await S.rememberVideo(task.sub, id);
+    try { fs.rmSync(res.workDir, { recursive: true, force: true }); } catch (e) {}
+    const videoUrl = "/.netlify/functions/video-file?id=" + id;
+    const video = { id: id, seconds: res.seconds, bytes: res.bytes, scenes: res.scenes };
+    await S.updateTask(task.id, { status: "done", videoUrl: videoUrl, video: video, reply: "Your video is ready!" });
+    return { ok: true, videoUrl: videoUrl, video: video };
+  } catch (e) {
+    const msg = (e && e.message) || "Video rendering failed.";
+    await S.updateTask(task.id, { status: "error", error: msg });
+    return { ok: false, error: msg };
+  }
+}
+
 async function runTask(task) {
   if (!task || !task.id) return { ok: false, error: "no_task" };
+  if (task.type === "render_video") return runVideoTask(task);
   await S.updateTask(task.id, { status: "working" });
   try {
     const out = await handleMessage({

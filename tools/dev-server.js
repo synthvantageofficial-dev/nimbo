@@ -11,24 +11,31 @@ const { spawn } = require("child_process");
 
 const root = path.join(__dirname, "..");
 
-// --- load .env.local ---
-const env = Object.assign({}, process.env);
-fs.readFileSync(path.join(root, ".env.local"), "utf8").split(/\r?\n/).forEach(function (line) {
-  const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)$/);
-  if (m) env[m[1]] = m[2].trim();
-});
+// --- read .env.local just for the startup status message (keys are passed to functions by Netlify CLI itself) ---
+const dotenv = {};
+try {
+  fs.readFileSync(path.join(root, ".env.local"), "utf8").split(/\r?\n/).forEach(function (line) {
+    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)$/);
+    if (m) dotenv[m[1]] = m[2].trim();
+  });
+} catch (e) {}
 
-// --- local-only settings ---
-env.NIMBO_LOCAL_STORE = path.join(root, ".localstore");  // file store instead of Netlify Blobs
-env.NIMBO_DEV_USER = "founder@nimbo.local";              // skips Google sign-in
-env.NIMBO_APP_URL = "http://localhost:8888/app.html";
+// --- env for the Netlify CLI child process ---
+// Do NOT pre-load .env.local API keys here — Netlify CLI reads .env.local itself and passes
+// those vars to functions. Pre-loading would cause "defined in process, ignoring" and skip them.
+// Only inject local-dev-only vars that are NOT in .env.local.
+const env = Object.assign({}, process.env, {
+  NIMBO_LOCAL_STORE: path.join(root, ".localstore"),  // file store instead of Netlify Blobs
+  NIMBO_DEV_USER: "founder@nimbo.local",              // skips Google sign-in
+  NIMBO_APP_URL: "http://localhost:8888/app.html"
+});
 
 console.log("");
 console.log("  Nimbo dev server");
 console.log("  ----------------");
-console.log("  Gemini key   : " + (env.GEMINI_API_KEY ? "loaded" : "MISSING"));
-console.log("  YouTube key  : " + (env.YOUTUBE_API_KEY ? "loaded" : "MISSING"));
-console.log("  Telegram bot : " + (env.TELEGRAM_BOT_TOKEN ? "loaded" : "not set yet (chat still works)"));
+console.log("  Gemini key   : " + (dotenv.GEMINI_API_KEY ? "loaded" : "MISSING"));
+console.log("  YouTube key  : " + (dotenv.YOUTUBE_API_KEY ? "loaded" : "MISSING"));
+console.log("  Telegram bot : " + (dotenv.TELEGRAM_BOT_TOKEN ? "loaded" : "not set yet (chat still works)"));
 console.log("  Storage      : " + env.NIMBO_LOCAL_STORE);
 console.log("");
 console.log("  >>> Open  http://localhost:8888/app.html?dev=1");

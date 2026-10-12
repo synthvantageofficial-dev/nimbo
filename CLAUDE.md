@@ -328,6 +328,72 @@ then **ffmpeg.wasm client-side** assembles the MP4 in the user's browser (keeps 
   `profile.js` was wiping server-set fields (Dodo subscription ids) on every setup edit; autopilot
   ignored plan + quota. Added `NIMBO_LOCAL_STORE` so everything is testable without a deploy.
 
+## 12 Oct - Session 3
+
+### What was done this session
+- **Google OAuth fix:** Added `http://localhost:8888` to authorized JavaScript origins in Google Cloud Console → Google sign-in now works on localhost.
+- **Telegram alternative discussed:** BotFather not creating new bots on founder's account. WhatsApp Business Cloud API identified as best global alternative (needs Meta Business Account + dedicated number). Email (with domain) is simplest universal option. **Decision pending from founder.**
+- **Local dev clarification:** Founder's project folder is `C:\Users\acer\OneDrive\Desktop\personal ai instict` (not "nimbo"). To test: `cd` to that folder → `git fetch origin && git checkout main-35vxqq` → `node tools/dev-server.js` → open `http://localhost:8888/app.html?dev=1`.
+- **CLAUDE.md updated** with full ✅ / ❌ status summary below.
+
+### What was done (continued — YouTube auto-posting)
+- **Pexels-first thumbnails** (`functions/lib/engine.js`): `buildThumbUrl()` now async, Pexels API first (format-aware portrait/landscape), Pollinations as fallback only. Dramatically better thumbnail quality.
+- **`functions/lib/youtube.js`**: YouTube API helpers — `getValidToken()` (refresh if expired), `getChannelInfo()`, `initiateUpload()`.
+- **`functions/youtube-connect.js`**: OAuth 2.0 callback — exchanges code, fetches channel info, stores `profile.yt` in Blobs, redirects to app with `?yt_connected=1` or `?yt_error=...`.
+- **`functions/youtube-token.js`**: `GET` endpoint — returns fresh access_token to client (avoids Netlify 6MB upload limit by having client talk directly to YouTube).
+- **`functions/profile.js`** fixes: now preserves `yt` tokens on every profile save (was silently wiped before); now exposes `sub: user.sub` in GET response (needed as OAuth state param).
+- **`nimbo-site/app.html`** — "▶️ Connect YouTube" channel card, OAuth redirect flow, upload UI with progress bar, toast notifications for OAuth callbacks and upload status.
+- ⚠️ **Founder still needs to do** (manual, one-time): in Google Cloud Console → OAuth consent screen → add `https://www.googleapis.com/auth/youtube.upload` scope + add `https://nimbo-4sc3.netlify.app/.netlify/functions/youtube-connect` as authorized redirect URI.
+
+### Decisions still waiting on founder
+- [ ] Messaging channel: WhatsApp (Meta Business Account + spare number) OR Email (buy domain ₹900) OR wait for BotFather to work?
+- [ ] Domain: `trynimbo.com` ya koi aur? (needed for email channel, payments trust, host-independence)
+- [ ] Netlify block: check `app.netlify.com/teams/synthvantageofficial-dev/billing` and send screenshot or message Netlify support
+- [ ] Google Cloud Console: add YouTube scope + redirect URI (see above)
+
+---
+
+## 📊 COMPLETE STATUS: WHAT IS DONE vs WHAT REMAINS
+
+### ✅ 100% BUILT (code is ready, waiting for deploy)
+
+| Feature | Where | Notes |
+|---|---|---|
+| Landing page + waitlist | LIVE | Email capture working |
+| Content Engine (basic) | LIVE | Ideas + script + trends |
+| **Setup Wizard (6 steps)** | Ready to deploy | All steps tested locally |
+| **Paywall** (3 plans) | Ready to deploy | Founding prices, flow complete |
+| **Dodo Payments** | Ready to deploy | Test payment confirmed ($27/mo) |
+| Better thumbnails | Ready to deploy | Format-aware (16:9 / 9:16) |
+| TTS + Image proxies | Ready to deploy | `tts.js`, `img.js` |
+| Engine personalization | Ready to deploy | Full creator profile used in briefs |
+| **Autonomous Engine** | Ready to deploy | Web chat + Telegram + Email-in wired |
+| Action ledger ("Nimbo ne khud kya kiya") | Ready to deploy | Last 50 actions saved |
+| Background + scheduled workers | Ready to deploy | Queue-based, no timeout |
+| Video player UI | Ready to deploy | Shows in brief, download button |
+| **YouTube auto-posting** | Ready to deploy | OAuth connect, client-side resumable upload, toast notifications |
+| Free faceless video (v4) | Proven locally | Pexels + Edge-TTS + captions |
+| Local dev server (`?dev=1`) | Working on laptop | Skips Google sign-in |
+
+### ❌ REMAINING (not built yet)
+
+| Feature | Blocker | Priority |
+|---|---|---|
+| **DEPLOY** everything above | Netlify block (§1) | 🔴 #1 |
+| **Messaging channel** (WhatsApp/Email) | Founder decision + setup | 🔴 High |
+| Free video INTO product (`/voice`, `/pexels`, ffmpeg.wasm) | Needs coding | 🟡 Medium |
+| Video polish (music, better cuts, animated captions) | Needs coding | 🟡 Medium |
+| ~~Auto-posting (YouTube OAuth)~~ **BUILT** | Ready to deploy | 🟡 Medium |
+| Payments LIVE mode (separate Dodo biz) | Founder action (Dodo) | 🟡 Medium |
+| Domain purchase | Founder pays ₹900 | 🟡 Medium |
+| Email delivery channel | Needs domain first | 🟡 Medium |
+| India pricing decision | Founder decides | 🟡 Medium |
+| PWA (install on home screen) | Needs coding | 🟢 Later |
+| Trust layer (approvals, undo) | Needs coding | 🟢 Later |
+| Native mobile app | Months of work + money | 🔵 Future |
+
+---
+
 ## 12 Oct - Session 2 (cloud session continues from here)
 
 ### What was done this session

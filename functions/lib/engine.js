@@ -31,12 +31,26 @@ function viewsShort(n) {
   return String(n);
 }
 
-// Build a free, no-key thumbnail image URL (Pollinations) from the brief's thumbnail concept.
-function buildThumbUrl(brief, niche, platform) {
+// Build thumbnail URL: Pexels first (reliable, free, professional), Pollinations as fallback.
+async function buildThumbUrl(brief, niche, platform) {
   var isLong = platform === "youtube_long";
-  var w = isLong ? 1280 : 576;   // 16:9 for long, 9:16 for vertical (free-tier friendly sizes)
-  var h = isLong ? 720 : 1024;
-  var base = ((brief && brief.thumbnail_image_prompt) || (brief && brief.thumbnail_concept) || niche || "").toString();
+  var base = ((brief && brief.thumbnail_image_prompt) || (brief && brief.thumbnail_concept) || niche || "creative content").toString().slice(0, 150);
+  var pexelsKey = process.env.PEXELS_API_KEY;
+  if (pexelsKey) {
+    try {
+      var orientation = isLong ? "landscape" : "portrait";
+      var r = await fetch("https://api.pexels.com/v1/search?query=" + encodeURIComponent(base) + "&per_page=5&orientation=" + orientation + "&per_page=5", { headers: { Authorization: pexelsKey } });
+      if (r.ok) {
+        var data = await r.json();
+        if (data.photos && data.photos.length) {
+          var photo = data.photos[Math.floor(Math.random() * Math.min(data.photos.length, 3))];
+          return isLong ? (photo.src.large2x || photo.src.large) : (photo.src.portrait || photo.src.large2x || photo.src.large);
+        }
+      }
+    } catch (e) {}
+  }
+  // Fallback: Pollinations (no key needed, but less reliable)
+  var w = isLong ? 1280 : 576; var h = isLong ? 720 : 1024;
   var prompt = base + " No text, no letters, no words. Vivid saturated colors, high contrast, dramatic cinematic lighting, ultra sharp, professional, photorealistic.";
   var seed = 7; for (var i = 0; i < base.length; i++) { seed = (seed * 31 + base.charCodeAt(i)) >>> 0; }
   return "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt.slice(0, 480)) + "?width=" + w + "&height=" + h + "&nologo=true&model=flux&seed=" + (seed % 100000);
@@ -90,13 +104,18 @@ async function generateBrief(opts) {
   if (!key) throw new Error("Nimbo's brain isn't configured yet.");
   const cfg = platformCfg(platform);
 
+  // YouTube trend data is only relevant / accurate for YouTube platforms.
+  // For Instagram/TikTok/other, we skip the API call and let Gemini use its platform knowledge instead.
+  const isYouTubePlatform = (platform === "youtube_long" || platform === "shorts");
   const ytKey = process.env.YOUTUBE_API_KEY;
-  const trending = ytKey ? await getTrending(niche, ytKey) : [];
+  const trending = (isYouTubePlatform && ytKey) ? await getTrending(niche, ytKey) : [];
   let trendBlock = "";
-  if (trending.length) {
+  if (isYouTubePlatform && trending.length) {
     trendBlock = "\n\nVideos TRENDING in this niche on YouTube RIGHT NOW (last 30 days, ranked by how fast they are gaining views) — title (views, age):\n"
       + trending.map((v) => "- \"" + v.title + "\" (" + viewsShort(v.views) + " views, " + v.ageDays + "d old)").join("\n")
       + "\nThese reflect the CURRENT trend. Ride the angles and formats clearly working now, but make the creator's take original and specific. Do NOT copy these titles verbatim.";
+  } else if (!isYouTubePlatform) {
+    trendBlock = "\n\nNOTE ON TRENDS: Real-time trend data APIs exist only for YouTube. For " + cfg.ui + ", apply your own knowledge of what content formats, sounds, hooks, and topics are currently performing well on this platform for " + niche + " creators. Focus on platform-native patterns — what actually works on " + cfg.ui + " right now, not YouTube trends.";
   }
   // Build a rich creator context from the one-time setup profile.
   const bits = [];
@@ -150,8 +169,8 @@ async function generateBrief(opts) {
       if (r.ok) {
         const brief = parseBrief(data);
         if (brief) {
-          const out = { niche: niche, platform: platform, platformLabel: cfg.ui, brief: brief, trending: trending, grounded: trending.length > 0, model: model, createdAt: Date.now() };
-          out.thumbUrl = buildThumbUrl(brief, niche, platform);
+          const out = { niche: niche, platform: platform, platformLabel: cfg.ui, brief: brief, trending: trending, grounded: trending.length > 0, trendSource: isYouTubePlatform ? "youtube_api" : "gemini_knowledge", model: model, createdAt: Date.now() };
+          out.thumbUrl = await buildThumbUrl(brief, niche, platform);
           return out;
         }
         lastErr = "Nimbo couldn't format the brief. Please try again.";
