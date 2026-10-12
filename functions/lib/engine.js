@@ -90,13 +90,18 @@ async function generateBrief(opts) {
   if (!key) throw new Error("Nimbo's brain isn't configured yet.");
   const cfg = platformCfg(platform);
 
+  // YouTube trend data is only relevant / accurate for YouTube platforms.
+  // For Instagram/TikTok/other, we skip the API call and let Gemini use its platform knowledge instead.
+  const isYouTubePlatform = (platform === "youtube_long" || platform === "shorts");
   const ytKey = process.env.YOUTUBE_API_KEY;
-  const trending = ytKey ? await getTrending(niche, ytKey) : [];
+  const trending = (isYouTubePlatform && ytKey) ? await getTrending(niche, ytKey) : [];
   let trendBlock = "";
-  if (trending.length) {
+  if (isYouTubePlatform && trending.length) {
     trendBlock = "\n\nVideos TRENDING in this niche on YouTube RIGHT NOW (last 30 days, ranked by how fast they are gaining views) — title (views, age):\n"
       + trending.map((v) => "- \"" + v.title + "\" (" + viewsShort(v.views) + " views, " + v.ageDays + "d old)").join("\n")
       + "\nThese reflect the CURRENT trend. Ride the angles and formats clearly working now, but make the creator's take original and specific. Do NOT copy these titles verbatim.";
+  } else if (!isYouTubePlatform) {
+    trendBlock = "\n\nNOTE ON TRENDS: Real-time trend data APIs exist only for YouTube. For " + cfg.ui + ", apply your own knowledge of what content formats, sounds, hooks, and topics are currently performing well on this platform for " + niche + " creators. Focus on platform-native patterns — what actually works on " + cfg.ui + " right now, not YouTube trends.";
   }
   // Build a rich creator context from the one-time setup profile.
   const bits = [];
@@ -150,7 +155,7 @@ async function generateBrief(opts) {
       if (r.ok) {
         const brief = parseBrief(data);
         if (brief) {
-          const out = { niche: niche, platform: platform, platformLabel: cfg.ui, brief: brief, trending: trending, grounded: trending.length > 0, model: model, createdAt: Date.now() };
+          const out = { niche: niche, platform: platform, platformLabel: cfg.ui, brief: brief, trending: trending, grounded: trending.length > 0, trendSource: isYouTubePlatform ? "youtube_api" : "gemini_knowledge", model: model, createdAt: Date.now() };
           out.thumbUrl = buildThumbUrl(brief, niche, platform);
           return out;
         }

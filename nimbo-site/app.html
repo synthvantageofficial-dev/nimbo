@@ -495,6 +495,7 @@
 
     <div class="result" id="result">
       <div class="niche" id="rNiche"></div>
+      <div class="hint" id="trendNote" style="display:none;margin-bottom:6px"></div>
       <div class="sec" id="trendSec" style="display:none">
         <div class="lbl"><span class="em">🔥</span> Trending now · last 30 days</div>
         <div class="trend" id="rTrend"></div>
@@ -696,6 +697,13 @@
     var b=d.brief;
     $('rNiche').textContent='Content brief for: '+d.niche+(d.platformLabel?'  ·  '+d.platformLabel:'');
     renderTrending(d.trending||[]);
+    var trendNote=$('trendNote');
+    if(trendNote){
+      if(d.trendSource==='gemini_knowledge'){
+        trendNote.textContent='Ideas based on Nimbo\'s platform knowledge. Real-time trend data is only available for YouTube.';
+        trendNote.style.display='block';
+      } else { trendNote.style.display='none'; }
+    }
     var best=(typeof b.best_pick_index==='number')?b.best_pick_index:0;
 
     var ideas=$('rIdeas'); ideas.innerHTML='';
