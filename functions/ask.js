@@ -18,7 +18,8 @@ exports.handler = async (event) => {
       if (!t || t.sub !== user.sub) return { statusCode: 404, headers, body: JSON.stringify({ error: "not found" }) };
       return { statusCode: 200, headers, body: JSON.stringify({
         status: t.status, intent: t.intent || "", error: t.error || "",
-        heard: t.heard || "", reply: t.reply || ""
+        heard: t.heard || "", reply: t.reply || "",
+        videoUrl: t.videoUrl || "", video: t.video || null, step: t.step || ""
       }) };
     }
     const conv = await S.getConv(user.sub);

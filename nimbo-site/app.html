@@ -199,6 +199,9 @@
   .vidbar a{margin-left:auto;text-decoration:none;background:linear-gradient(180deg,var(--accent),var(--accent-d));
     color:#fff;font-family:var(--fdisplay);font-weight:600;font-size:.85rem;padding:.5em .95em;border-radius:10px}
   .vidnote{background:#fff7e3;color:#8a6400;font-weight:700;font-size:.86rem;padding:10px 14px;border-radius:12px;margin-bottom:16px}
+  .vidbtn{margin-bottom:16px}
+  .vidbtn button{background:var(--accent);color:#fff;font-family:var(--fdisplay);font-weight:700;font-size:.9rem;padding:.6em 1.4em;border:none;border-radius:12px;cursor:pointer}
+  .vidbtn button:hover{opacity:.88}
 
   /* ---------- telegram pairing steps ---------- */
   .tgsteps{margin-top:10px}
@@ -664,6 +667,8 @@
   }
 
   function render(d){
+    // Store brief so startVideoRender() can access script + platform.
+    window.__nimboBrief = d;
     // Capture video info so mountVideo() can find it (set before any DOM work).
     window.__nimboVideo = d && d.videoUrl
       ? { url: d.videoUrl, info: d.video || {}, err: null }
@@ -711,37 +716,101 @@
   // Drop the video player in above everything else in the result card.
   function mountVideo(host){
     var v = window.__nimboVideo;
-    if(!host || !v) return;
-    // Remove any existing player first (re-render case)
-    var old = host.querySelector('.vidwrap, .vidnote');
+    // Remove any existing player/button first (re-render case)
+    var old = host && host.querySelector('.vidwrap, .vidnote, .vidbtn');
     if(old) old.parentNode.removeChild(old);
-    if(v.err === 'notready'){
+    if(!host) return;
+    if(v && v.err === 'notready'){
       var note = el('div','vidnote','🎥 The written brief is ready. Automatic video building is not switched on for this server yet.');
       host.insertBefore(note, host.firstChild);
       return;
     }
-    if(v.err){
+    if(v && v.err){
       var note = el('div','vidnote','🎥 Could not finish the video this time: ' + v.err + '. The script below is ready to shoot.');
       host.insertBefore(note, host.firstChild);
       return;
     }
-    if(!v.url) return;
-    var wrap = el('div','vidwrap','');
-    var vid = document.createElement('video');
-    vid.src = v.url; vid.controls = true; vid.playsInline = true; vid.preload = 'metadata';
-    wrap.appendChild(vid);
-    var bar = el('div','vidbar','');
-    bar.appendChild(el('b','','🎥 Your video'));
-    var bits = [];
-    if(v.info.seconds) bits.push(v.info.seconds + 's');
-    if(v.info.scenes) bits.push(v.info.scenes + ' scenes');
-    if(v.info.bytes) bits.push(Math.round(v.info.bytes/1024/1024*10)/10 + ' MB');
-    bar.appendChild(el('span','', bits.join('  \u00b7  ')));
-    var dl = document.createElement('a');
-    dl.href = v.url; dl.download = 'nimbo-video.mp4'; dl.textContent = 'Download';
-    bar.appendChild(dl);
-    wrap.appendChild(bar);
-    host.insertBefore(wrap, host.firstChild);
+    if(v && v.url){
+      var wrap = el('div','vidwrap','');
+      var vid = document.createElement('video');
+      vid.src = v.url; vid.controls = true; vid.playsInline = true; vid.preload = 'metadata';
+      wrap.appendChild(vid);
+      var bar = el('div','vidbar','');
+      bar.appendChild(el('b','','🎥 Your video'));
+      var bits = [];
+      if(v.info.seconds) bits.push(v.info.seconds + 's');
+      if(v.info.scenes) bits.push(v.info.scenes + ' scenes');
+      if(v.info.bytes) bits.push(Math.round(v.info.bytes/1024/1024*10)/10 + ' MB');
+      bar.appendChild(el('span','', bits.join('  \u00b7  ')));
+      var dl = document.createElement('a');
+      dl.href = v.url; dl.download = 'nimbo-video.mp4'; dl.textContent = 'Download';
+      bar.appendChild(dl);
+      wrap.appendChild(bar);
+      host.insertBefore(wrap, host.firstChild);
+      return;
+    }
+    // No video yet — offer to build one for free_faceless creators, if not already rendering
+    if(myProfile && myProfile.videoTool === 'free_faceless' && !document.getElementById('vidprog')){
+      var btn = el('div','vidbtn','');
+      var b = document.createElement('button');
+      b.textContent = '🎥 Make free video';
+      b.onclick = function(){ startVideoRender(window.__nimboBrief); };
+      btn.appendChild(b);
+      host.insertBefore(btn, host.firstChild);
+    }
+  }
+
+  function startVideoRender(d){
+    if(!d) return;
+    var host = $('result');
+    var old = host && host.querySelector('.vidwrap, .vidnote, .vidbtn');
+    if(old) old.parentNode.removeChild(old);
+    var prog = el('div','vidnote','');
+    prog.id = 'vidprog';
+    prog.textContent = '🎥 Building your video… this takes 1–3 minutes.';
+    if(host) host.insertBefore(prog, host.firstChild);
+    var script = (d.brief && d.brief.script) || '';
+    var platform = d.platform || 'short';
+    var voice = (myProfile && myProfile.ttsVoice) || 'en-US-AriaNeural';
+    fetch(FN + '/make-video', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ script: script, platform: platform, voice: voice })
+    }).then(function(r){ return r.json(); }).then(function(res){
+      if(res.taskId) pollVideo(res.taskId);
+      else showVidError(res.error || 'Could not start video.');
+    }).catch(function(e){ showVidError(e && e.message || 'Network error.'); });
+  }
+
+  function pollVideo(taskId){
+    var interval = setInterval(function(){
+      fetch(FN + '/ask?taskId=' + encodeURIComponent(taskId), {
+        headers: { 'Authorization': 'Bearer ' + token }
+      }).then(function(r){ return r.json(); }).then(function(res){
+        var prog = document.getElementById('vidprog');
+        if(prog && res.step) prog.textContent = '🎥 ' + res.step;
+        if(res.status === 'done'){
+          clearInterval(interval);
+          var prog2 = document.getElementById('vidprog');
+          if(prog2) prog2.parentNode.removeChild(prog2);
+          window.__nimboVideo = { url: res.videoUrl, info: res.video || {}, err: null };
+          mountVideo($('result'));
+        } else if(res.status === 'error'){
+          clearInterval(interval);
+          showVidError(res.error || 'Video render failed.');
+        }
+      }).catch(function(){});
+    }, 5000);
+  }
+
+  function showVidError(msg){
+    var prog = document.getElementById('vidprog');
+    if(prog){ prog.textContent = '🎥 ' + msg; return; }
+    var host = $('result');
+    if(host){
+      var note = el('div','vidnote','🎥 ' + msg);
+      host.insertBefore(note, host.firstChild);
+    }
   }
 
   function renderBriefList(){
